@@ -213,6 +213,11 @@ end
 %% extract features from hidden layers
 %% https://www.mathworks.com/help/deeplearning/examples/extract-image-features-using-pretrained-network.html
 
+% sanity check
+layername  = 'input'     
+originalFeatures = activations(net,vol{volId},layername );
+norm(originalFeatures(:)-vol{volId}(:))
+
 % features after first convolution
 layername = 'conv_Module1_Level1';
 convFeatures = activations(net,vol{volId},layername );
