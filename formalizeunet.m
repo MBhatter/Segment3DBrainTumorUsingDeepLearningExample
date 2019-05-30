@@ -234,3 +234,26 @@ layername  = 'transConv_Module6'
 outputFeatures = activations(net,vol{volId},layername );
 
 
+%% compute convolution as a linear operator
+imagematrix = zeros(128*128*128,27,4);
+for alpha = 1:4
+  for iii=2:127
+    for jjj=2:127
+      for kkk=2:127
+        patch = vol{volId}(iii+[-1 0 1],jjj+[-1 0 1],kkk+[-1 0 1],alpha);
+        imagematrix(iii+128*jjj+128*128*kkk,:,alpha) =  patch(:)';
+      end
+    end
+  end
+end
+
+%% verify equivalent features
+beta = 1
+onefeature  = convFeatures(:,:,:,beta);
+myoutput    = zeros(size(onefeature(:)));
+for alpha = 1:4
+  myweights = net.Layers(1).Weights(:,:,:,alpha,beta);
+  myoutput  = myoutput + imagematrix(:,:,alpha) * myweights(:); 
+end
+norm(myoutput - onefeature(:))
+
