@@ -234,14 +234,39 @@ layername  = 'transConv_Module6'
 outputFeatures = activations(net,vol{volId},layername );
 
 
+floor((pixsize(1)+1-iii)/pixsize(1))
 %% compute convolution as a linear operator
-imagematrix = zeros(128*128*128,27,4);
+pixsize = size(vol{volId})
+imagematrix = zeros(pixsize(1)*pixsize(2)*pixsize(3),27,4);
 for alpha = 1:4
-  for iii=2:127
-    for jjj=2:127
-      for kkk=2:127
-        patch = vol{volId}(iii+[-1 0 1],jjj+[-1 0 1],kkk+[-1 0 1],alpha);
-        imagematrix(iii+128*jjj+128*128*kkk,:,alpha) =  patch(:)';
+  for iii=1:pixsize(1)
+    for jjj=1:pixsize(2)
+      for kkk=1:pixsize(3)
+        % FIXME - is there a better way to handle the BC ? 
+        if iii ==1
+           xstencil = [ 0 0 1];
+        elseif iii == 128
+           xstencil = [-1 0 0];
+        else 
+           xstencil = [-1 0 1];
+        end 
+        if jjj ==1
+           ystencil = [ 0 0 1];
+        elseif jjj == 128
+           ystencil = [-1 0 0];
+        else 
+           ystencil = [-1 0 1];
+        end 
+        if kkk ==1
+           zstencil = [ 0 0 1];
+        elseif kkk == 128
+           zstencil = [-1 0 0];
+        else 
+           zstencil = [-1 0 1];
+        end 
+        patch = vol{volId}(iii+xstencil,jjj+ystencil,kkk+zstencil,alpha);
+        linearInd = sub2ind(size(vol{volId}(:,:,:)),iii,jjj,kkk);
+        imagematrix(linearInd,:,alpha) =  patch(:)';
       end
     end
   end
