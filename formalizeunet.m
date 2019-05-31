@@ -250,7 +250,7 @@ for alpha = 1:4
         zstencil = [-1 0 1];
         %% offset for the padded image
         patch = padimage(iii+1+xstencil,jjj+1+ystencil,kkk+1+zstencil,alpha);
-        linearInd = sub2ind(size(vol{volId}(:,:,:)),iii,jjj,kkk);
+        linearInd = iii + pixsize(1) * (jjj-1) + pixsize(1)*pixsize(2) * (kkk -1);
         imagematrix(linearInd,:,alpha) =  patch(:)';
       end
     end
