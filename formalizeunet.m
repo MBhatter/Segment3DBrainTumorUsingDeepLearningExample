@@ -234,37 +234,22 @@ layername  = 'transConv_Module6'
 outputFeatures = activations(net,vol{volId},layername );
 
 
-floor((pixsize(1)+1-iii)/pixsize(1))
 %% compute convolution as a linear operator
 pixsize = size(vol{volId})
 imagematrix = zeros(pixsize(1)*pixsize(2)*pixsize(3),27,4);
+%% pad the image
+padimage    = padarray(vol{volId},[1 1 1],0,'both');
+
 for alpha = 1:4
   for iii=1:pixsize(1)
     for jjj=1:pixsize(2)
       for kkk=1:pixsize(3)
         % FIXME - is there a better way to handle the BC ? 
-        if iii ==1
-           xstencil = [ 0 0 1];
-        elseif iii == 128
-           xstencil = [-1 0 0];
-        else 
-           xstencil = [-1 0 1];
-        end 
-        if jjj ==1
-           ystencil = [ 0 0 1];
-        elseif jjj == 128
-           ystencil = [-1 0 0];
-        else 
-           ystencil = [-1 0 1];
-        end 
-        if kkk ==1
-           zstencil = [ 0 0 1];
-        elseif kkk == 128
-           zstencil = [-1 0 0];
-        else 
-           zstencil = [-1 0 1];
-        end 
-        patch = vol{volId}(iii+xstencil,jjj+ystencil,kkk+zstencil,alpha);
+        xstencil = [-1 0 1];
+        ystencil = [-1 0 1];
+        zstencil = [-1 0 1];
+        %% offset for the padded image
+        patch = padimage(iii+1+xstencil,jjj+1+ystencil,kkk+1+zstencil,alpha);
         linearInd = sub2ind(size(vol{volId}(:,:,:)),iii,jjj,kkk);
         imagematrix(linearInd,:,alpha) =  patch(:)';
       end
