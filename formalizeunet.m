@@ -226,6 +226,18 @@ convFeatures = activations(net,vol{volId},layername );
 layername = 'BN_Module1_Level1'
 bnFeatures = activations(net,vol{volId},layername );
 
+% features after level 2 convolution in module 1
+layername = 'conv_Module1_Level2'  
+convlevel2Features = activations(net,vol{volId},layername );
+
+% relu features 
+layername = 'relu_Module1_Level2'  
+relulevel2Features = activations(net,vol{volId},layername );
+
+% max pool 
+layername = 'maxpool_Module1'      
+maxpoolFeatures = activations(net,vol{volId},layername );
+
 % input/output to transpose convolution layer
 layername  = 'relu_Module6_Level2'
 inputFeatures = activations(net,vol{volId},layername );
@@ -233,6 +245,9 @@ inputFeatures = activations(net,vol{volId},layername );
 layername  = 'transConv_Module6'     
 outputFeatures = activations(net,vol{volId},layername );
 
+% concatenate features
+layername  = 'concat1'              
+concatFeatures = activations(net,vol{volId},layername );
 
 %% compute convolution as a linear operator
 pixsize = size(vol{volId})
