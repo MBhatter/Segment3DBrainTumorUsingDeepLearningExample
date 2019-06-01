@@ -278,8 +278,9 @@ onefeature  = convFeatures(:,:,:,beta);
 myoutput    = zeros(size(onefeature(:)));
 for alpha = 1:4
   myweights = net.Layers(1).Weights(:,:,:,alpha,beta);
-  mybias    = net.Layers(1).Bias(:,:,:,alpha,beta);
-  myoutput  = myoutput + imagematrix(:,:,alpha) * myweights(:)  + mybias ;
+  myoutput  = myoutput + imagematrix(:,:,alpha) * myweights(:)  ;
 end
+mybias    = net.Layers(1).Bias(1,1,1,beta);
+myoutput  = myoutput +  mybias ;
 norm(myoutput - onefeature(:))
 
