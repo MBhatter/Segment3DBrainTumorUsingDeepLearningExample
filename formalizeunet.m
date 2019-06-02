@@ -259,7 +259,7 @@ for alpha = 1:4
   for iii=1:pixsize(1)
     for jjj=1:pixsize(2)
       for kkk=1:pixsize(3)
-        % FIXME - is there a better way to handle the BC ? 
+        % convolution kernel is a finite difference stencil
         xstencil = [-1 0 1];
         ystencil = [-1 0 1];
         zstencil = [-1 0 1];
