@@ -249,38 +249,3 @@ outputFeatures = activations(net,vol{volId},layername );
 layername  = 'concat1'              
 concatFeatures = activations(net,vol{volId},layername );
 
-%% compute convolution as a linear operator
-pixsize = size(vol{volId})
-imagematrix = zeros(pixsize(1)*pixsize(2)*pixsize(3),27,4);
-%% pad the image
-padimage    = padarray(vol{volId},[1 1 1],0,'both');
-
-for alpha = 1:4
-  for iii=1:pixsize(1)
-    for jjj=1:pixsize(2)
-      for kkk=1:pixsize(3)
-        % convolution kernel is a finite difference stencil
-        xstencil = [-1 0 1];
-        ystencil = [-1 0 1];
-        zstencil = [-1 0 1];
-        %% offset for the padded image
-        patch = padimage(iii+1+xstencil,jjj+1+ystencil,kkk+1+zstencil,alpha);
-        linearInd = iii + pixsize(1) * (jjj-1) + pixsize(1)*pixsize(2) * (kkk -1);
-        imagematrix(linearInd,:,alpha) =  patch(:)';
-      end
-    end
-  end
-end
-
-%% verify equivalent features
-beta = 1
-onefeature  = convFeatures(:,:,:,beta);
-myoutput    = zeros(size(onefeature(:)));
-for alpha = 1:4
-  myweights = net.Layers(1).Weights(:,:,:,alpha,beta);
-  myoutput  = myoutput + imagematrix(:,:,alpha) * myweights(:)  ;
-end
-mybias    = net.Layers(1).Bias(1,1,1,beta);
-myoutput  = myoutput +  mybias ;
-norm(myoutput - onefeature(:))
-
