@@ -241,9 +241,11 @@ maxpoolFeatures = activations(net,vol{volId},layername );
 % input/output to transpose convolution layer
 layername  = 'relu_Module6_Level2'
 inputFeatures = activations(net,vol{volId},layername );
+size(inputFeatures )
 
 layername  = 'transConv_Module6'     
 outputFeatures = activations(net,vol{volId},layername );
+size(outputFeatures )
 
 % concatenate features
 layername  = 'concat1'              
