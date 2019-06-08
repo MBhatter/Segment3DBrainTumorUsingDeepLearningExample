@@ -217,10 +217,14 @@ end
 layername  = 'input'     
 originalFeatures = activations(net,vol{volId},layername );
 norm(originalFeatures(:)-vol{volId}(:))
+orignii = make_nii(originalFeatures,[],[],[],'original');
+save_nii(orignii,'original.nii' ) ;
 
 % features after first convolution
 layername = 'conv_Module1_Level1';
 convFeatures = activations(net,vol{volId},layername );
+convnii = make_nii(convFeatures ,[],[],[],'convolution');
+save_nii(convnii,'convolution.nii' ) ;
 
 % features after first batch normalization
 layername = 'BN_Module1_Level1'
@@ -251,3 +255,30 @@ size(outputFeatures )
 layername  = 'concat1'              
 concatFeatures = activations(net,vol{volId},layername );
 
+% last relu
+layername  = 'relu_Module7_Level2'  
+lastReluFeatures = activations(net,vol{volId},layername);
+lastrelunii = make_nii(lastReluFeatures ,[],[],[],'lastrelu');
+save_nii(lastrelunii,'lastrelu.nii' ) ;
+
+% last convolution features
+size(net.Layers(39).Weights)
+% NOTE - no neighborhood covolution. output is a linear combination of the input channels
+% ans = 1     1     1    64     2
+layername  = 'ConvLast_Module7'
+lastconvFeatures = activations(net,vol{volId},layername );
+lastconvnii = make_nii(lastconvFeatures,[],[],[],'lastconv');
+save_nii(lastconvnii,'lastconv.nii' ) ;
+
+% softmax features
+layername  = 'softmax'              
+softmaxFeatures = activations(net,vol{volId},layername );
+softnii = make_nii(softmaxFeatures,[],[],[],'softmax');
+save_nii(softnii,'softmax.nii' ) ;
+
+% output predictions
+segnii = make_nii(uint8(predictedLabels{volId}),[],[],[],'segmentation');
+save_nii(segnii,'output.nii' ) ;
+
+% view output
+% vglrun itksnap -g original.nii -s output.nii -o convolution.nii lastrelu.nii lastconv.nii softmax.nii 
