@@ -277,6 +277,21 @@ softnii = make_nii(softmaxFeatures,[],[],[],'softmax');
 save_nii(softnii,'softmax.nii' ) ;
 
 % output predictions
+layername  = 'output'              
+testout = activations(net,vol{volId},layername );
+norm(softmaxFeatures(:)-testout(:))
+[maxvalue , testlabel ]= max(softmaxFeatures,[],4);
+% Get the non-brain region mask from the test image.
+volMask = vol{volId}(:,:,:,1)==0;
+% Set the non-brain region of the predicted label as background.
+testlabel(volMask) = classNames(1);
+% Perform median filtering on the predicted label.
+testlabel = medfilt3(uint8(testlabel)-1);
+% Cast the filtered label to categorial.
+testlabel = categorical(testlabel,pixelLabelID,classNames);
+norm(double(uint8(testlabel(:)) - uint8(predictedLabels{volId}(:))))
+
+% write predictions
 segnii = make_nii(uint8(predictedLabels{volId}),[],[],[],'segmentation');
 save_nii(segnii,'output.nii' ) ;
 
