@@ -5,6 +5,9 @@
 clear all 
 close all
 
+% load nifti functions
+addpath nifti
+
 %% Download Pretrained Network and Sample Test Set
 % Optionally, download a pretrained version of 3-D U-Net and five sample test 
 % volumes and their corresponding labels from the BraTS data set [3]. The pretrained 
