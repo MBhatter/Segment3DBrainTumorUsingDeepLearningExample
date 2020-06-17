@@ -1,11 +1,42 @@
-
-
-Skull Stripping
+## Skull Stripping
 ===============
 
-/rsrch1/ip/egates1/NFBS\ Skull\ Strip/NFBSFilepaths.csv
+**Neurofeedback Skull-stripped (NFBS) repository**
 
-Tumor Segmentation
+/rsrch1/ip/egates1/NFBS\ Skull\ Strip/NFBSFilepaths.csv. File paths are absolute for the time being.
+
+Data downloaded from http://preprocessed-connectomes-project.org/NFB_skullstripped and consists of 125 high-resolution T1w images (de-faced) with ground truth brain masks.
+
+Citation:
+https://pubmed.ncbi.nlm.nih.gov/27782853/
+
+
+## Tumor Segmentation
 ===============
 
-/rsrch1/ip/egates1/BRATS/BRATS.csv
+**MICCAI 2018 Brain Tumor Segmentation Challenge**
+
+/rsrch1/ip/egates1/MICCAI_BraTS_2018_Data_Training/BraTS18_filepaths_train_val_tst.csv.
+The paths are relative to the MICCAI_BraTS_2018_Data_Training directory
+
+Training data contains 210 high grade glioma (HGG cases) and 75 low-grade glioma (LGG) cases. 163 of the HGG cases also have overall survival in days.
+ 
+Each case has T1, T2, FLAIR, T1CE, and seg (for training data) as provided by the challenge organizers https://www.med.upenn.edu/sbia/brats2018.html. Labels are: enhancing tumor (4), peritumoral edema (2), and the necrosis/non-enhancing tumor (1). Input images have been rigidly co-registered, skull stripped, and resampled to 1mm isotropic resolution.
+
+A few auxiliary files have been added for each case: mask (all non-zero pixels), tumor (union of ground truth segmentation labels), and nontumor (brain – tumor).
+
+Copied directly from the challenge website:
+
+You are free to use and/or refer to the BraTS datasets in your own research, provided that you always cite the following three manuscripts:
+
+[1] B. H. Menze, A. Jakab, S. Bauer, J. Kalpathy-Cramer, K. Farahani, J. Kirby, et al. "The Multimodal Brain Tumor Image Segmentation Benchmark (BRATS)", IEEE Transactions on Medical Imaging 34(10), 1993-2024 (2015) DOI: 10.1109/TMI.2014.2377694
+
+[2] S. Bakas, H. Akbari, A. Sotiras, M. Bilello, M. Rozycki, J.S. Kirby, et al., "Advancing The Cancer Genome Atlas glioma MRI collections with expert segmentation labels and radiomic features", Nature Scientific Data, 4:170117 (2017) DOI: 10.1038/sdata.2017.117
+
+[3] S. Bakas, M. Reyes, A. Jakab, S. Bauer, M. Rempfler, A. Crimi, et al., "Identifying the Best Machine Learning Algorithms for Brain Tumor Segmentation, Progression Assessment, and Overall Survival Prediction in the BRATS Challenge", arXiv preprint arXiv:1811.02629 (2018)
+
+In addition, if there are no restrictions imposed from the journal/conference you submit your paper about citing "Data Citations", please be specific and also cite the following:
+
+[4] S. Bakas, H. Akbari, A. Sotiras, M. Bilello, M. Rozycki, J. Kirby, et al., "Segmentation Labels and Radiomic Features for the Pre-operative Scans of the TCGA-GBM collection", The Cancer Imaging Archive, 2017. DOI: 10.7937/K9/TCIA.2017.KLXWJJ1Q
+
+[5] S. Bakas, H. Akbari, A. Sotiras, M. Bilello, M. Rozycki, J. Kirby, et al., "Segmentation Labels and Radiomic Features for the Pre-operative Scans of the TCGA-LGG collection", The Cancer Imaging Archive, 2017. DOI: 10.7937/K9/TCIA.2017.GJQ7R0EF
