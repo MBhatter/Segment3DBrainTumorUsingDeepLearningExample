@@ -16,5 +16,7 @@
 
 %% evaluate the average dice similarity
 %   manu - output nifti files of the test set predictions
+%   priya - visualize differences in itksnap
 
 %% compare to MONSTR
+%   @egates1 - do you have MONSTR predictions on this dataset ? are there any papers that have already done this ?
