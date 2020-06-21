@@ -4,6 +4,45 @@
 %   manu -
 %          load nifti data from /rsrch1/ip/egates1/NFBS\ Skull\ Strip/NFBSFilepaths.csv 
 %          into matlab data structure
+% Setting up the code: fresh start
+clc
+clear all
+close all
+
+% Read file pathways into table
+folder = '/rsrch1/ip/egates1/NFBS Skull Strip/';
+fullFileName = fullfile(folder, 'NFBSFilepaths.csv')
+T = readtable(fullFileName, 'Delimiter', ',')
+
+% convert table of file pathways to cell array
+A = table2array(T)
+
+% predefine cell arrays to hold volumetric data
+T1RAI{125,1}=[];
+maskRAI{125,1}=[];
+T1{125,1}=[];
+mask{125,1}=[];
+
+% niftiread 
+% loop through T1RAI column and do niftiread to store volumetric data
+for row = 1:125
+    T1RAI{row,1} = niftiread(A{row,2});
+end
+
+% loop through maskRAI column and do niftiread to store volumetric data
+for row = 1:125
+    maskRAI{row,1} = niftiread(A{row,3});
+end
+
+% loop through T1 column and do niftiread to read volumetric data
+for row = 1:125
+    T1{row,1} = niftiread(A{row,4});
+end
+
+% loop through mask column and do niftiread to read in volumetric data
+for row = 1:125
+    mask{row,1} = niftiread(A{row,5});
+end
 
 %% setup data for k-fold cross validation
 %   aurian - split the data into training/ validation/  test  sets
