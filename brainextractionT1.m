@@ -11,39 +11,99 @@ close all
 
 % Read file pathways into table
 folder = '/rsrch1/ip/egates1/NFBS Skull Strip/';
-fullFileName = fullfile(folder, 'NFBSFilepaths.csv')
-T = readtable(fullFileName, 'Delimiter', ',')
+fullFileName = fullfile(folder, 'NFBSFilepaths.csv');
+T = readtable(fullFileName, 'Delimiter', ',');
+A = table2array(T);
+T1Loc = A(:,4);
+maskLoc = A(:,5);
 
-% convert table to cell array
-A = table2array(T)
+ % define readers
+ maskReader = @(x) (niftiread(x)>0);
+ volReader = @(x) niftiread(x);
+ 
+ %read data into datastores
+ volds = imageDatastore(T1Loc, ...
+     'FileExtensions','.gz','ReadFcn',volReader);
+ 
+ classNames = ["background","brain"];
+  pixelLabelID = [0 1];
+ 
+ % read data intp pixelLabeldatastore
+ pxds = pixelLabelDatastore(maskLoc,classNames, pixelLabelID, ...
+        'FileExtensions','.gz','ReadFcn',maskReader);
+  reset(volds);
+  reset(pxds);      
 
-% create cell arrays to hold Volumetric data
-T1RAI{125,1}=[];
-maskRAI{125,1}=[];
-T1{125,1}=[];
-mask{125,1}=[];
+    %% Crop relevant region
+    NumFiles = length(pxds.Files);
+    id = 1;
+    while hasdata(pxds)
+        outL = readNumeric(pxds);
+        outV = read(volds);
+        temp = outL>0;
+        sz = size(outL);
+        reg = regionprops3(temp,'BoundingBox');
+        tol = 64;
+        ROI = ceil(reg.BoundingBox(1,:));
+        ROIst = ROI(1:3) - tol;
+        ROIend = ROI(1:3) + ROI(4:6) + tol;
+        
+        ROIst(ROIst<1)=1;
+        ROIend(ROIend>sz)=sz(ROIend>sz);
+        
+        tumorRows = ROIst(2):ROIend(2);
+        tumorCols = ROIst(1):ROIend(1);
+        tumorPlanes = ROIst(3):ROIend(3);
+        
+        tcropVol = outV(tumorRows,tumorCols, tumorPlanes,:);
+        tcropLabel = outL(tumorRows,tumorCols, tumorPlanes);
+        
+        
+% Data set with a valid size for 3-D U-Net (multiple of 8)
+        ind = floor(size(tcropVol)/8)*8;
+        incropVol = tcropVol(1:ind(1),1:ind(2),1:ind(3),:);
+        mask = incropVol == 0;
+        
+%%%%%%%% channelWisePreProcess
+        % As input has 4 channels (modalities), remove the mean and divide by the
+        % standard deviation of each modality independently.
+        incropVol1=single(incropVol);
+        
+        chn_Mean = mean(incropVol1,[1 2 3]);
+        chn_Std = std(incropVol1,0,[1 2 3]);
+        cropVol = (incropVol1 - chn_Mean)./chn_Std;
 
-% niftiread 
-% loop through T1RAI column and do niftiread
-for row = 1:125
-    T1RAI{row,1} = niftiread(A{row,2});
-end
+        rangeMin = -5;
+        rangeMax = 5;
+        % Remove outliers
+        cropVol(cropVol > rangeMax) = rangeMax;
+        cropVol(cropVol < rangeMin) = rangeMin;
 
-% loop through maskRAI column and do niftiread to store volumetric data
-for row = 1:125
-    maskRAI{row,1} = niftiread(A{row,3});
-end
-
-% loop through T1 column and do niftiread to read vol data
-for row = 1:125
-    T1{row,1} = niftiread(A{row,4});
-end
-
-% loop through mask column and do niftiread to read in vol data
-for row = 1:125
-    mask{row,1} = niftiread(A{row,5});
-end
-
+        % Rescale the data to the range [0, 1]
+        cropVol = (cropVol - rangeMin) / (rangeMax - rangeMin);
+        
+%%%%%%%%        
+        % Set the nonbrain region to 0
+        cropVol(mask) = 0;
+        cropLabel = tcropLabel(1:ind(1),1:ind(2),1:ind(3));
+        
+%         % Split data into training, validation and test sets. Roughly 82%
+%         % are training, 6% are validation, and 12% are test
+%         if (id < floor(0.83*NumFiles))
+%             imDir    = fullfile(destination,'imagesTr','BraTS');
+%             labelDir = fullfile(destination,'labelsTr','BraTS');
+%         elseif (id < floor(0.89*NumFiles))
+%             imDir    = fullfile(destination,'imagesVal','BraTS');
+%             labelDir = fullfile(destination,'labelsVal','BraTS');
+%         else
+%             imDir    = fullfile(destination,'imagesTest','BraTS');
+%             labelDir = fullfile(destination,'labelsTest','BraTS');
+%         end
+%         save([imDir num2str(id,'%.3d') '.mat'],'cropVol');
+%         save([labelDir num2str(id,'%.3d') '.mat'],'cropLabel');
+        id=id+1;
+   
+   end  
 
 
 %% setup data for k-fold cross validation
