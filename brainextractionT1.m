@@ -11,14 +11,13 @@
 
 %% load the 3D U-net structure
 %  priya - 
-%           pasted 3D U-net structure. depends on parameters_net.mat, which is a new commit. 
-%           verified the code in my local environment, need to verify on the server 
 
-load("./parameters_unet.mat");
+% before starting, need to define "n" which is the number of channels.
+n = 4;
 lgraph = layerGraph();
 
 tempLayers = [
-    image3dInputLayer([64 64 64 4],"Name","input","Normalization","none")
+    image3dInputLayer([64 64 64 n],"Name","input","Normalization","none")
     convolution3dLayer([3 3 3],32,"Name","conv_Module1_Level1","Padding","same","WeightsInitializer","narrow-normal")
     batchNormalizationLayer("Name","BN_Module1_Level1")
     reluLayer("Name","relu_Module1_Level1")
@@ -78,8 +77,11 @@ tempLayers = [
     convolution3dLayer([3 3 3],64,"Name","conv_Module7_Level2","Padding","same")
     reluLayer("Name","relu_Module7_Level2")
     convolution3dLayer([1 1 1],2,"Name","ConvLast_Module7")
-    softmaxLayer("Name","softmax")];
-    helperDicePixelClassification3dLayer("output",1e-08,categorical(["background";"tumor"]));
+    softmaxLayer("Name","softmax")
+    dicePixelClassification3dLayer("output")];
+    
+%     helperDicePixelClassification3dLayer("output",1e-08,categorical(["background";"tumor"]));
+
 lgraph = addLayers(lgraph,tempLayers);
 
 % clean up helper variable
@@ -96,11 +98,6 @@ lgraph = connectLayers(lgraph,"transConv_Module5","concat2/in2");
 lgraph = connectLayers(lgraph,"transConv_Module6","concat1/in2");
 
 plot(lgraph);
-
-function layer = helperDicePixelClassification3dLayer(name,epsilon,classes)
-% Define this function before running the script.
-% The function must create and return a layer of type dicePixelClassification3dLayer.
-end
 
 %% train the model on the training set for each fold in the k-fold
 
