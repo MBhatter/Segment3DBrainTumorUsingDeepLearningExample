@@ -1,0 +1,7 @@
+{
+    "fullFileName": "/rsrch1/ip/dtfuentes/github/hccdetection/datalocation/trainingdata.csv",
+    "delimiter": ",",
+    "volCol": 2,
+    "lblCol": 3,
+    "stoFoldername": "liverTest"
+}
