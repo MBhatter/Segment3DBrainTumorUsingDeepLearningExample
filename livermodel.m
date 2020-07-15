@@ -9,20 +9,24 @@ clear all
 close all
 
 a = livermodelclass 
-a.preprocess()
+[procvolds, proclblfs] =  a.preprocess()
 
 % before starting, need to define "n" which is the number of channels.
 NumberOfChannels = 1;
 a.LoadNNUnet3d(NumberOfChannels)
+% TODO - @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
+% TODO - load  multiple networks
+% a.LoadNNDUnet2d(NumberChannels)
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Do the k-fold partition
-
-patients = tabledb(:,1);% Extract the patient ids in the filepaths table
+% split the data into k-folds
+patients  = a.tabledb(:,1);% Extract the patient ids in the filepaths table
 partition = cvpartition(patients,'k',5);
 err = zeros(partition.NumTestSets,1);
 
-
+% TODO - @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
+% TODO - loop over multiple the NN model for each k-fold
+% train the model on the training set for each fold in the k-fold
+% and write out the trained model
 for i = 1:partition.NumTestSets
     trIdx = partition.training(i);
     teIdx = partition.test(i);
@@ -30,6 +34,8 @@ for i = 1:partition.NumTestSets
     trMask = subset(proclblfs, trIdx);
 
     % Training, validation, and test data for each fold
+    % TODO - @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
+    %  what is 12 and 13 ? 
     trainData = subset(trData, [13:.8*length(patients)]);
     trainMask = subset(trMask, [13:.8*length(patients)]);
     valData = subset(trData, [1:12]);
@@ -70,56 +76,39 @@ for i = 1:partition.NumTestSets
     tsmaskpxds = pixelLabelDatastore(testmaskChar,classNames,pixelLabelID, ...
     'FileExtensions','.mat','ReadFcn',procvolReader);
 
+    % Need Random Patch Extraction on testing and validation Data
+    patchSize = [64 64 64];
+    patchPerImage = 16;
+    miniBatchSize = 8;
+      %training patch datastore
+    trpatchds = randomPatchExtractionDatastore(trainData,trmaskpxds,patchSize, ...
+        'PatchesPerImage',patchPerImage);
+    trpatchds.MiniBatchSize = miniBatchSize;
+      %validation patch datastore
+    dsVal = randomPatchExtractionDatastore(valData,valmaskpxds,patchSize, ...
+        'PatchesPerImage',patchPerImage);
+    dsVal.MiniBatchSize = miniBatchSize;
 
-    % Compute Dice(general concept, might be a more code-friendly way to do it)
-    %{
-    p = networkPrediction.*correctPrediction
-    s = 2*sum(p, 'all')
-    err(i) = s/(sum(networkPrediction,'all')+sum(correctPrediction, 'all'))
-    %}
+    options = trainingOptions('adam', ...
+        'MaxEpochs',50, ...
+        'InitialLearnRate',5e-4, ...
+        'LearnRateSchedule','piecewise', ...
+        'LearnRateDropPeriod',5, ...
+        'LearnRateDropFactor',0.95, ...
+        'ValidationData',dsVal, ...
+        'ValidationFrequency',400, ...
+        'Plots','training-progress', ...
+        'Verbose',false, ...
+        'MiniBatchSize',miniBatchSize);
+    
+    
+    modelDateTime = datestr(now,'dd-mmm-yyyy-HH-MM-SS');
+    [net,info] = trainNetwork(trpatchds,lgraph,options);
+    save(['trained3DUNet-' modelDateTime '-Epoch-' num2str(maxEpochs) '.mat'],'net');
 
 end
-% Average Loss Function Error for all folds
-%cvErr = sum(err)/sum(partition.TestSize);
 
 
-% Need Random Patch Extraction on testing and validation Data
-patchSize = [64 64 64];
-patchPerImage = 16;
-miniBatchSize = 8;
-  %training patch datastore
-trpatchds = randomPatchExtractionDatastore(trainData,trmaskpxds,patchSize, ...
-    'PatchesPerImage',patchPerImage);
-trpatchds.MiniBatchSize = miniBatchSize;
-  %validation patch datastore
-dsVal = randomPatchExtractionDatastore(valData,valmaskpxds,patchSize, ...
-    'PatchesPerImage',patchPerImage);
-dsVal.MiniBatchSize = miniBatchSize;
-
-
-
-%% train the model on the training set for each fold in the k-fold
-% Need to Train the network using training and validation data
-
-options = trainingOptions('adam', ...
-    'MaxEpochs',50, ...
-    'InitialLearnRate',5e-4, ...
-    'LearnRateSchedule','piecewise', ...
-    'LearnRateDropPeriod',5, ...
-    'LearnRateDropFactor',0.95, ...
-    'ValidationData',dsVal, ...
-    'ValidationFrequency',400, ...
-    'Plots','training-progress', ...
-    'Verbose',false, ...
-    'MiniBatchSize',miniBatchSize);
-
-
-modelDateTime = datestr(now,'dd-mmm-yyyy-HH-MM-SS');
-[net,info] = trainNetwork(trpatchds,lgraph,options);
-save(['trained3DUNet-' modelDateTime '-Epoch-' num2str(maxEpochs) '.mat'],'net');
-
-%% evaluate the average dice similarity
-%% train the model on the training set for each fold in the k-fold
 
 %% evaluate the average dice similarity
 %   manu - output nifti files of the test set predictions

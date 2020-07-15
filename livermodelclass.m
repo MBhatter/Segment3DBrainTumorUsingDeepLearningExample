@@ -4,26 +4,22 @@ classdef livermodelclass < ImageSegmentationBaseClass
    fname = 'liverConfig.json';
    end
    methods
-      function preprocess(obj)
+      function [procvolds, proclblfs ] =  preprocess(obj)
         jsonText = fileread(obj.fname);
         jsonData = jsondecode(jsonText);
         
         % Read file pathways into table
         fullFileName = jsonData.fullFileName;
-            % enter: = /rsrch1/ip/egates1/NFBS Skull Strip/NFBSFilepaths.csv
         
         delimiter = jsonData.delimiter;
-            % enter: ,
         
-        tabledb = readtable(fullFileName, 'Delimiter', delimiter);
+        obj.tabledb = readtable(fullFileName, 'Delimiter', delimiter);
         volCol = jsonData.volCol;
-            % enter: 4
             
         lblCol = jsonData.lblCol;
-            % enter: 5
         
-        volLoc = table2array(tabledb(:,volCol));
-        lblLoc = table2array(tabledb(:,lblCol));
+        volLoc = table2array(obj.tabledb(:,volCol));
+        lblLoc = table2array(obj.tabledb(:,lblCol));
         
         stoFoldername = jsonData.stoFoldername;
         % for user-defined: destination = input("Please enter the file pathway for folder to store training, validation, and test sets: ", 's')
@@ -82,16 +78,17 @@ classdef livermodelclass < ImageSegmentationBaseClass
                 tcropLabel = outL;
         
         
-        % Data set with a valid size for 3-D U-Net (multiple of 8)
+                % Data set with a valid size for 3-D U-Net (multiple of 8)
                 ind = floor(size(tcropVol)/8)*8;
                 incropVol = tcropVol(1:ind(1),1:ind(2),1:ind(3));
                 mask = incropVol == 0;
         
-        %%%%%%%% channelWisePreProcess
+                %%%%%%%% channelWisePreProcess
                 % As input has 4 channels (modalities), remove the mean and divide by the
                 % standard deviation of each modality independently.
                 incropVol1=single(incropVol);
         
+                % TODO - @mbhatter - channel dependent here -
                 chn_Mean = mean(incropVol1,[1 2 3]);
                 chn_Std = std(incropVol1,0,[1 2 3]);
                 cropVol1 = (incropVol1 - chn_Mean)./chn_Std;
@@ -135,6 +132,8 @@ classdef livermodelclass < ImageSegmentationBaseClass
         
         % proclblfs stores processed mask file info
         proclblfs = matlab.io.datastore.DsFileSet(labelDirProc);
+
+
       end
    end
 end

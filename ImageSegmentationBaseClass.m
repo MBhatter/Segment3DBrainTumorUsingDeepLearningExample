@@ -5,7 +5,8 @@ classdef ImageSegmentationBaseClass
    properties
       Value {mustBeNumeric}
       lgraph %  @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
-             %  here lgraph is a scalar, can we make this a vector ? I want to load multiple networks 
+             %  TODO - here lgraph is a scalar, can we make this a vector ? I want to load multiple networks 
+      tabledb % load csv database into this table
    end
    methods
       function preprocess(obj,filename)
@@ -94,19 +95,19 @@ classdef ImageSegmentationBaseClass
       end
       % load 3d DenseUnet, input: number of channels
       function LoadNNDenseUnet3d(obj,NumberChannels)
-         disp('FIXME') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
+         disp('TODO') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
       end
       % load deepmedic DenseUnet, input: number of channels
       function LoadNNDeepMedic(obj,NumberChannels)
-         disp('FIXME') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
+         disp('TODO') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
       end
       % load 2D  , input: number of channels
       function LoadNNDenseUnet2d(obj,NumberChannels)
-         disp('FIXME') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
+         disp('TODO') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
       end
       % load 2D  , input: number of channels
       function LoadNNDUnet2d(obj,NumberChannels)
-         disp('FIXME') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
+         disp('TODO') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
       end
       % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR  - what other NN methods should we add ? 
    end
