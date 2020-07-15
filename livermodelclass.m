@@ -1,7 +1,6 @@
-
 classdef livermodelclass < ImageSegmentationBaseClass
    properties (Constant)
-   % @mbhatter  - should we store properties here ?
+   % @mbhatter - should we store json data within class properties here ?
    fname = 'liverConfig.json';
    end
    methods
