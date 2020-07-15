@@ -1,7 +1,7 @@
 %  @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
 %   base class for image segmentation
 
-classdef ImageSegmentationBaseClass
+classdef ImageSegmentationBaseClass  < handle
    properties
       Value {mustBeNumeric}
       lgraph %  @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
@@ -20,6 +20,9 @@ classdef ImageSegmentationBaseClass
         fullFileName = obj.jsonData.fullFileName;
         delimiter = obj.jsonData.delimiter;
         obj.tabledb = readtable(fullFileName, 'Delimiter', delimiter);
+
+        % initialize NN
+        obj.lgraph = layerGraph();
       end
 
 
@@ -29,7 +32,6 @@ classdef ImageSegmentationBaseClass
       end
       % load 3d Unet, input: number of channels
       function LoadNNUnet3d(obj,NumberChannels)
-         obj.lgraph = layerGraph();
          
          tempLayers = [
              image3dInputLayer([64 64 64 NumberChannels],"Name","input","Normalization","none")
@@ -105,6 +107,7 @@ classdef ImageSegmentationBaseClass
          obj.lgraph = connectLayers(obj.lgraph,"transConv_Module5","concat2/in2");
          obj.lgraph = connectLayers(obj.lgraph,"transConv_Module6","concat1/in2");
          
+         obj
          plot(obj.lgraph);
       end
       % load 3d DenseUnet, input: number of channels

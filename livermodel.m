@@ -17,9 +17,8 @@ a.LoadNNUnet3d(NumberOfChannels)
 % a.LoadNNDUnet2d(NumberChannels)
 
 % split the data into k-folds
-patients  = a.tabledb(:,1);% Extract the patient ids in the filepaths table
+patients  = table2array(a.tabledb(:,1));% Extract the patient ids in the filepaths table
 partition = cvpartition(patients,'k',5);
-err = zeros(partition.NumTestSets,1);
 
 % TODO - @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
 % TODO - loop over multiple the NN model for each k-fold
@@ -66,13 +65,13 @@ for i = 1:partition.NumTestSets
     classNames = ["background","tumor"];
     pixelLabelID = [0 1];
     trmaskpxds = pixelLabelDatastore(trmaskChar,classNames,pixelLabelID, ...
-    'FileExtensions','.mat','ReadFcn',procvolReader);
+    'FileExtensions','.mat','ReadFcn',proclblReader );
 
     valmaskpxds = pixelLabelDatastore(valmaskChar,classNames,pixelLabelID, ...
-    'FileExtensions','.mat','ReadFcn',procvolReader);
+    'FileExtensions','.mat','ReadFcn',proclblReader );
 
     tsmaskpxds = pixelLabelDatastore(testmaskChar,classNames,pixelLabelID, ...
-    'FileExtensions','.mat','ReadFcn',procvolReader);
+    'FileExtensions','.mat','ReadFcn',proclblReader );
 
     % Need Random Patch Extraction on testing and validation Data
     patchSize = [64 64 64];
@@ -101,7 +100,7 @@ for i = 1:partition.NumTestSets
     
     
     modelDateTime = datestr(now,'dd-mmm-yyyy-HH-MM-SS');
-    [net,info] = trainNetwork(trpatchds,lgraph,options);
+    [net,info] = trainNetwork(trpatchds,a.lgraph,options);
     save(['trained3DUNet-' modelDateTime '-Epoch-' num2str(maxEpochs) '.mat'],'net');
 
 end
