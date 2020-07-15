@@ -101,7 +101,7 @@ for i = 1:partition.NumTestSets
     
     modelDateTime = datestr(now,'dd-mmm-yyyy-HH-MM-SS');
     [net,info] = trainNetwork(trpatchds,a.lgraph,options);
-    save(['trained3DUNet-' modelDateTime '-Epoch-' num2str(maxEpochs) '.mat'],'net');
+    save(['trained3DUNet-' modelDateTime '-Epoch-' num2str(options.MaxEpochs) '.mat'],'net');
 
 end
 
