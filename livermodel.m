@@ -1,14 +1,12 @@
-%% 3-D Brain Extraction from MRI
-%    Train and cross validate a 3-D U-net for brain extraction on T1 image
-%% load nifti data 
-%   manu -
-%          load nifti data from /rsrch1/ip/egates1/NFBS\ Skull\ Strip/NFBSFilepaths.csv 
-%          into matlab data structure
+%% liver segmentation on MRI
 % Setting up the code: fresh start
 clear all
 close all
 
-a = livermodelclass 
+%% instantiate class
+a = livermodelclass ('liverConfig.json') ; 
+
+%% load nifti data 
 [procvolds, proclblfs] =  a.preprocess()
 
 % before starting, need to define "n" which is the number of channels.

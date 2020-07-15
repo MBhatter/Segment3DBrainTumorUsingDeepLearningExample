@@ -6,9 +6,23 @@ classdef ImageSegmentationBaseClass
       Value {mustBeNumeric}
       lgraph %  @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
              %  TODO - here lgraph is a scalar, can we make this a vector ? I want to load multiple networks 
-      tabledb % load csv database into this table
+      tabledb  %  
+      jsonData %  
    end
    methods
+
+      function obj = ImageSegmentationBaseClass(fname)
+        % constructor - load all configuration data
+        jsonText = fileread(fname);
+        obj.jsonData = jsondecode(jsonText);
+        
+        % Read file pathways into table
+        fullFileName = obj.jsonData.fullFileName;
+        delimiter = obj.jsonData.delimiter;
+        obj.tabledb = readtable(fullFileName, 'Delimiter', delimiter);
+      end
+
+
       function preprocess(obj,filename)
          disp('overload me with your data specific preprocessing')
          disp(['load data from a  your csv file - ', filename])

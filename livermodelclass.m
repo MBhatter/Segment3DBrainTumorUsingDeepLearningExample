@@ -1,27 +1,14 @@
 classdef livermodelclass < ImageSegmentationBaseClass
-   properties (Constant)
-   % @mbhatter - should we store json data within class properties here ?
-   fname = 'liverConfig.json';
-   end
    methods
       function [procvolds, proclblfs ] =  preprocess(obj)
-        jsonText = fileread(obj.fname);
-        jsonData = jsondecode(jsonText);
-        
-        % Read file pathways into table
-        fullFileName = jsonData.fullFileName;
-        
-        delimiter = jsonData.delimiter;
-        
-        obj.tabledb = readtable(fullFileName, 'Delimiter', delimiter);
-        volCol = jsonData.volCol;
+        volCol = obj.jsonData.volCol;
             
-        lblCol = jsonData.lblCol;
+        lblCol = obj.jsonData.lblCol;
         
         volLoc = table2array(obj.tabledb(:,volCol));
         lblLoc = table2array(obj.tabledb(:,lblCol));
         
-        stoFoldername = jsonData.stoFoldername;
+        stoFoldername = obj.jsonData.stoFoldername;
         % for user-defined: destination = input("Please enter the file pathway for folder to store training, validation, and test sets: ", 's')
         destination = fullfile(tempdir,stoFoldername, 'preprocessedDataset');
         
