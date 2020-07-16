@@ -4,6 +4,8 @@ clear all
 close all
 
 %% instantiate class
+a = ImageSegmentationBaseClass ('./hccmrilog/dscimg/densenet2d/adadelta/512/run_a/005020/005/000/setup.json') ; 
+
 a = livermodelclass ('liverConfig.json') ; 
 
 %% load nifti data 

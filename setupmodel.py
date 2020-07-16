@@ -73,20 +73,22 @@ def GetDataDictionary():
 
 # setup kfolds
 def GetSetupKfolds(numfolds,idfold,dataidsfull ):
-  from sklearn.model_selection import KFold
+  from sklearn.model_selection import KFold, train_test_split
 
   if (numfolds < idfold or numfolds < 1):
      raise("data input error")
   # split in folds
   if (numfolds > 1):
      kf = KFold(n_splits=numfolds)
-     allkfolds = [ (list(map(lambda iii: dataidsfull[iii], train_index)), list(map(lambda iii: dataidsfull[iii], test_index))) for train_index, test_index in kf.split(dataidsfull )]
-     train_index = allkfolds[idfold][0]
-     test_index  = allkfolds[idfold][1]
+     allkfolds = [ (list(map(lambda iii: dataidsfull[iii], trainval_index)), list(map(lambda iii: dataidsfull[iii], test_index))) for trainval_index, test_index in kf.split(dataidsfull )]
+     trainval_index = allkfolds[idfold][0]
+     (train_index,validation_index) = train_test_split(trainval_index,test_size =.125) # .125*.8 = .1
+     test_index     = allkfolds[idfold][1]
   else:
-     train_index = np.array(dataidsfull )
-     test_index  = None  
-  return (train_index,test_index)
+     train_index       = np.array(dataidsfull )
+     validation_index  = None  
+     test_index        = None  
+  return (train_index,validation_index,test_index)
 ## Borrowed from
 ## $(SLICER_DIR)/CTK/Libs/DICOM/Core/Resources/dicom-schema.sql
 ## 
@@ -218,9 +220,9 @@ elif (options.setuptestset):
   with open(makefilename ,'w') as fileHandle:
    for nnid in nnlist:
     for iii in range(options.kfolds):
-      (train_set,test_set) = GetSetupKfolds(options.kfolds,iii,dataidsfull)
+      (train_set,validation_set,test_set) = GetSetupKfolds(options.kfolds,iii,dataidsfull)
       uidoutputdir= _globaldirectorytemplate % (options.databaseid,options.trainingloss+ _xstr(options.sampleweight),nnid ,options.trainingsolver,options.trainingresample,options.trainingid,options.trainingbatch,options.validationbatch,options.kfolds,iii)
-      setupconfig = {'nnmodel':nnid, 'kfold':iii, 'testset':[ databaseinfo[idtest]['uid'] for idtest in test_set], 'trainset': [ databaseinfo[idtrain]['uid'] for idtrain in train_set], 'delimiter':',', 'volCol':3, 'lblCol':4,'stoFoldername': 'liverTest','fullFileName':options.dbfile }
+      setupconfig = {'nnmodel':nnid, 'kfold':iii, 'testset':[ databaseinfo[idtest]['uid'] for idtest in test_set], 'validationset': [ databaseinfo[idtrain]['uid'] for idtrain in validation_set],'trainset': [ databaseinfo[idtrain]['uid'] for idtrain in train_set], 'delimiter':',', 'volCol':3, 'lblCol':4,'stoFoldername': 'liverTest','fullFileName':options.dbfile }
       modelprereq    = '%s/tumormodelunet.json' % uidoutputdir
       setupprereq    = '%s/setup.json' % uidoutputdir
       os.system ('mkdir -p %s' % uidoutputdir)
