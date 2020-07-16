@@ -3,3 +3,8 @@ Matlab example
 ==============
 
 https://www.mathworks.com/help/images/segment-3d-brain-tumor-using-deep-learning.html
+
+
+Usage
+=====
+python setupmodel.py --databaseid=hccmri --initialize
