@@ -1,6 +1,7 @@
-clc
-clear all
-close all
+% inputniftifilepath - input full path to nifti file
+% mynetwork - input full path to the NN we will use
+% outputpath - output path where files will be written
+function applymodel( inputniftifilepath, mynetwork, outputpath )
 
 %% read setup parameters
 
@@ -12,3 +13,4 @@ close all
 
 %% write output to disk as a nifti file
 
+end
