@@ -7,32 +7,48 @@ classdef ImageSegmentationBaseClass  < handle
       lgraph %  @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
              %  TODO - here lgraph is a scalar, can we make this a vector ? I want to load multiple networks 
       tabledb  %  
-      jsonData %  
+      jsonData % 
+      netTypes
    end
+   
+   %%
    methods
 
       function obj = ImageSegmentationBaseClass(fname)
-        % constructor - load all configuration data
-        jsonText = fileread(fname);
-        obj.jsonData = jsondecode(jsonText);
-        
-        % Read file pathways into table
-        fullFileName = obj.jsonData.fullFileName;
-        delimiter = obj.jsonData.delimiter;
-        obj.tabledb = readtable(fullFileName, 'Delimiter', delimiter);
+%         % constructor - load all configuration data
+%         jsonText = fileread(fname);
+%         obj.jsonData = jsondecode(jsonText);
+%         
+%         % Read file pathways into table
+%         fullFileName = obj.jsonData.fullFileName;
+%         delimiter = obj.jsonData.delimiter;
+%         obj.tabledb = readtable(fullFileName, 'Delimiter', delimiter);\
+        obj.jsonData = fname;
 
         % initialize NN
-        obj.lgraph = layerGraph();
+        % changed NumberChannels to 4 for example, and used denseUnet2d
+        % as a placeholder for Deep Medic
+        obj.lgraph{1} = obj.LoadNNUnet3d(4);
+        obj.lgraph{2} = obj.LoadNNDenseUnet3d(4);
+        obj.lgraph{3} = obj.LoadNNDenseUnet2d(4);
+        obj.lgraph{4} = obj.LoadNNDenseUnet2d(4);
+        obj.lgraph{5} = obj.LoadNNUnet2d(4);
+
+        obj.netTypes = ["Unet3d","DenseUnet3d","DeepMedic","DenseUnet2d","Unet2d"];
       end
 
-
-      function preprocess(obj,filename)
-         disp('overload me with your data specific preprocessing')
-         disp(['load data from a  your csv file - ', filename])
-      end
+% 
+%       function preprocess(obj,filename)
+%          disp('overload me with your data specific preprocessing')
+%          disp(['load data from a  your csv file - ', filename])
+%       end
+   end
+   
+   %%
+   methods(Static)
       % load 3d Unet, input: number of channels
-      function LoadNNUnet3d(obj,NumberChannels)
-         
+      function lgraph = LoadNNUnet3d(NumberChannels)
+         lgraph = layerGraph();
          tempLayers = [
              image3dInputLayer([64 64 64 NumberChannels],"Name","input","Normalization","none")
              convolution3dLayer([3 3 3],32,"Name","conv_Module1_Level1","Padding","same","WeightsInitializer","narrow-normal")
@@ -40,7 +56,7 @@ classdef ImageSegmentationBaseClass  < handle
              reluLayer("Name","relu_Module1_Level1")
              convolution3dLayer([3 3 3],64,"Name","conv_Module1_Level2","Padding","same","WeightsInitializer","narrow-normal")
              reluLayer("Name","relu_Module1_Level2")];
-         obj.lgraph = addLayers(obj.lgraph,tempLayers);
+         lgraph = addLayers(lgraph,tempLayers);
          tempLayers = [
              maxPooling3dLayer([2 2 2],"Name","maxpool_Module1","Padding","same","Stride",[2 2 2])
              convolution3dLayer([3 3 3],64,"Name","conv_Module2_Level1","Padding","same","WeightsInitializer","narrow-normal")
@@ -48,7 +64,7 @@ classdef ImageSegmentationBaseClass  < handle
              reluLayer("Name","relu_Module2_Level1")
              convolution3dLayer([3 3 3],128,"Name","conv_Module2_Level2","Padding","same","WeightsInitializer","narrow-normal")
              reluLayer("Name","relu_Module2_Level2")];
-         obj.lgraph = addLayers(obj.lgraph,tempLayers);
+         lgraph = addLayers(lgraph,tempLayers);
          tempLayers = [
              maxPooling3dLayer([2 2 2],"Name","maxpool_Module2","Padding","same","Stride",[2 2 2])
              convolution3dLayer([3 3 3],128,"Name","conv_Module3_Level1","Padding","same","WeightsInitializer","narrow-normal")
@@ -56,7 +72,7 @@ classdef ImageSegmentationBaseClass  < handle
              reluLayer("Name","relu_Module3_Level1")
              convolution3dLayer([3 3 3],256,"Name","conv_Module3_Level2","Padding","same","WeightsInitializer","narrow-normal")
              reluLayer("Name","relu_Module3_Level2")];
-         obj.lgraph = addLayers(obj.lgraph,tempLayers);
+         lgraph = addLayers(lgraph,tempLayers);
          tempLayers = [
              maxPooling3dLayer([2 2 2],"Name","maxpool_Module3","Padding","same","Stride",[2 2 2])
              convolution3dLayer([3 3 3],256,"Name","conv_Module4_Level1","Padding","same","WeightsInitializer","narrow-normal")
@@ -64,7 +80,7 @@ classdef ImageSegmentationBaseClass  < handle
              convolution3dLayer([3 3 3],512,"Name","conv_Module4_Level2","Padding","same","WeightsInitializer","narrow-normal")
              reluLayer("Name","relu_Module4_Level2")
              transposedConv3dLayer([2 2 2],512,"Name","transConv_Module4","Stride",[2 2 2])];
-         obj.lgraph = addLayers(obj.lgraph,tempLayers);
+         lgraph = addLayers(lgraph,tempLayers);
          tempLayers = [
              concatenationLayer(4,2,"Name","concat3")
              convolution3dLayer([3 3 3],256,"Name","conv_Module5_Level1","Padding","same","WeightsInitializer","narrow-normal")
@@ -72,7 +88,7 @@ classdef ImageSegmentationBaseClass  < handle
              convolution3dLayer([3 3 3],256,"Name","conv_Module5_Level2","Padding","same","WeightsInitializer","narrow-normal")
              reluLayer("Name","relu_Module5_Level2")
              transposedConv3dLayer([2 2 2],256,"Name","transConv_Module5","Stride",[2 2 2])];
-         obj.lgraph = addLayers(obj.lgraph,tempLayers);
+         lgraph = addLayers(lgraph,tempLayers);
          tempLayers = [
              concatenationLayer(4,2,"Name","concat2")
              convolution3dLayer([3 3 3],128,"Name","conv_Module6_Level1","Padding","same","WeightsInitializer","narrow-normal")
@@ -80,7 +96,7 @@ classdef ImageSegmentationBaseClass  < handle
              convolution3dLayer([3 3 3],128,"Name","conv_Module6_Level2","Padding","same","WeightsInitializer","narrow-normal")
              reluLayer("Name","relu_Module6_Level2")
              transposedConv3dLayer([2 2 2],128,"Name","transConv_Module6","Stride",[2 2 2])];
-         obj.lgraph = addLayers(obj.lgraph,tempLayers);
+         lgraph = addLayers(lgraph,tempLayers);
          tempLayers = [
              concatenationLayer(4,2,"Name","concat1")
              convolution3dLayer([3 3 3],64,"Name","conv_Module7_Level1","Padding","same")
@@ -91,30 +107,31 @@ classdef ImageSegmentationBaseClass  < handle
              softmaxLayer("Name","softmax")
              dicePixelClassification3dLayer("output")];
                   
-         obj.lgraph = addLayers(obj.lgraph,tempLayers);
+         lgraph = addLayers(lgraph,tempLayers);
          
          % clean up helper variable
          clear tempLayers;
-         obj.lgraph = connectLayers(obj.lgraph,"relu_Module1_Level2","maxpool_Module1");
-         obj.lgraph = connectLayers(obj.lgraph,"relu_Module1_Level2","concat1/in1");
-         obj.lgraph = connectLayers(obj.lgraph,"relu_Module2_Level2","maxpool_Module2");
-         obj.lgraph = connectLayers(obj.lgraph,"relu_Module2_Level2","concat2/in1");
-         obj.lgraph = connectLayers(obj.lgraph,"relu_Module3_Level2","maxpool_Module3");
-         obj.lgraph = connectLayers(obj.lgraph,"relu_Module3_Level2","concat3/in1");
-         obj.lgraph = connectLayers(obj.lgraph,"transConv_Module4","concat3/in2");
-         obj.lgraph = connectLayers(obj.lgraph,"transConv_Module5","concat2/in2");
-         obj.lgraph = connectLayers(obj.lgraph,"transConv_Module6","concat1/in2");
-         
-         obj
-         plot(obj.lgraph);
+         lgraph = connectLayers(lgraph,"relu_Module1_Level2","maxpool_Module1");
+         lgraph = connectLayers(lgraph,"relu_Module1_Level2","concat1/in1");
+         lgraph = connectLayers(lgraph,"relu_Module2_Level2","maxpool_Module2");
+         lgraph = connectLayers(lgraph,"relu_Module2_Level2","concat2/in1");
+         lgraph = connectLayers(lgraph,"relu_Module3_Level2","maxpool_Module3");
+         lgraph = connectLayers(lgraph,"relu_Module3_Level2","concat3/in1");
+         lgraph = connectLayers(lgraph,"transConv_Module4","concat3/in2");
+         lgraph = connectLayers(lgraph,"transConv_Module5","concat2/in2");
+         lgraph = connectLayers(lgraph,"transConv_Module6","concat1/in2");
+        
+         plot(lgraph);
       end
+      
+      %%
       % load 3d DenseUnet, input: number of channels
-      function LoadNNDenseUnet3d(obj,NumberChannels)
+      function lgraph = LoadNNDenseUnet3d(NumberChannels)
          disp('TODO') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
          lgraph = layerGraph();
 
          tempLayers = [
-             image3dInputLayer([64 64 64 4],"Name","input","Normalization","none")
+             image3dInputLayer([64 64 64 NumberChannels],"Name","input","Normalization","none")
              convolution3dLayer([3 3 3],32,"Name","conv_Module1_Level1","Padding","same","WeightsInitializer","narrow-normal")
              batchNormalizationLayer("Name","BN_Module1_Level1")
              reluLayer("Name","relu_Module1_Level1")];
@@ -260,25 +277,26 @@ classdef ImageSegmentationBaseClass  < handle
 
          plot(lgraph);
       end
+      
+      %%
       % load deepmedic DenseUnet, input: number of channels
-      function LoadNNDeepMedic(obj,NumberChannels)
-         disp('TODO') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
-      end
+%       function lgraph = LoadNNDeepMedic(NumberChannels)
+%          disp('TODO') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
+%          lgraph = layerGraph();
+
+%       end
+
+%%
       % load 2D  , input: number of channels
-      function LoadNNDenseUnet2d(obj,NumberChannels)
-         disp('TODO') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR
-         %define n as number of channels
-         n = 1;
-         %% Create Layer Graph
-         % Create the layer graph variable to contain the network layers.
-
+      function lgraph = LoadNNDenseUnet2d(NumberChannels)
+         
+         disp('TODO') 
+         % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR
+         
          lgraph = layerGraph();
-         %% Add Layer Branches
-         % Add the branches of the network to the layer graph. Each branch is a linear 
-         % array of layers.
-
+      
          tempLayers = [
-             imageInputLayer([64 64 n],"Name","input","Normalization","none")
+             imageInputLayer([64 64 NumberChannels],"Name","input","Normalization","none")
              convolution2dLayer([3 3],32,"Name","conv_Module1_Level1","Padding","same","WeightsInitializer","narrow-normal")
              batchNormalizationLayer("Name","BN_Module1_Level1")
              reluLayer("Name","relu_Module1_Level1")];
@@ -390,7 +408,6 @@ classdef ImageSegmentationBaseClass  < handle
 
          % clean up helper variable
          clear tempLayers;
-         %% Connect Layer Branches
          % Connect all the branches of the network to create the network graph.
 
          lgraph = connectLayers(lgraph,"relu_Module1_Level1","conv_Module1_Level2");
@@ -423,25 +440,21 @@ classdef ImageSegmentationBaseClass  < handle
          lgraph = connectLayers(lgraph,"relu_Module7_Level1","conv_Module7_Level2");
          lgraph = connectLayers(lgraph,"relu_Module7_Level1","depthcat_10/in1");
          lgraph = connectLayers(lgraph,"relu_Module7_Level2","depthcat_10/in2");
-         %% Plot Layers
 
          plot(lgraph);
 
       end
+      
+      %%
       % load 2D  , input: number of channels
-      function LoadNNUnet2d(obj,NumberChannels)
+      function lgraph = LoadNNUnet2d(NumberChannels)
          disp('TODO') % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
-         n = 1;
-         %% Create Layer Graph
-         % Create the layer graph variable to contain the network layers.
 
          lgraph = layerGraph();
-         %% Add Layer Branches
-         % Add the branches of the network to the layer graph. Each branch is a linear 
-         % array of layers.
+
 
          tempLayers = [
-             imageInputLayer([64 64 n],"Name","input","Normalization","none")
+             imageInputLayer([64 64 NumberChannels],"Name","input","Normalization","none")
              convolution2dLayer([3 3],32,"Name","conv_Module1_Level1","Padding","same","WeightsInitializer","narrow-normal")
              batchNormalizationLayer("Name","BN_Module1_Level1")
              reluLayer("Name","relu_Module1_Level1")
@@ -507,7 +520,7 @@ classdef ImageSegmentationBaseClass  < handle
 
          % clean up helper variable
          clear tempLayers;
-         %% Connect Layer Branches
+
          % Connect all the branches of the network to create the network graph.
 
          lgraph = connectLayers(lgraph,"relu_Module1_Level2","maxpool_Module1");
@@ -519,7 +532,7 @@ classdef ImageSegmentationBaseClass  < handle
          lgraph = connectLayers(lgraph,"transConv_Module4","concat3/in1");
          lgraph = connectLayers(lgraph,"transConv_Module5","concat2/in1");
          lgraph = connectLayers(lgraph,"transConv_Module6","concat1/in1");
-         %% Plot Layers
+
 
          plot(lgraph);
       end
