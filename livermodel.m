@@ -28,9 +28,6 @@ procReader = @(x) matRead(x);
 trainData      = imageDatastore(fullfile(a.jsonData.stoFoldername,'/preprocessedDataset/imagesMain/',a.jsonData.trainset     ) , 'FileExtensions','.mat','ReadFcn',procReader);
 validationData = imageDatastore(fullfile(a.jsonData.stoFoldername,'/preprocessedDataset/imagesMain/',a.jsonData.validationset) , 'FileExtensions','.mat','ReadFcn',procReader);
 
-% read label data
-fullfile(a.jsonData.stoFoldername,'/preprocessedDataset/labelsMain/',a.jsonData.trainset)
-    
 % read these into pixellabeldatastores
 classNames = ["background","liver"];
 pixelLabelID = [0 1];
@@ -42,13 +39,13 @@ patchSize = [64 64 64];
 patchPerImage = 16;
 miniBatchSize = 8;
   %training patch datastore
-trpatchds = randomPatchExtractionDatastore(trainData,trmaskpxds,patchSize, ...
+trainPatch = randomPatchExtractionDatastore(trainData,trainMask,patchSize, ...
     'PatchesPerImage',patchPerImage);
-trpatchds.MiniBatchSize = miniBatchSize;
+trainPatch.MiniBatchSize = miniBatchSize;
   %validation patch datastore
-dsVal = randomPatchExtractionDatastore(valData,valmaskpxds,patchSize, ...
+validationPath = randomPatchExtractionDatastore(validationData,validationMask,patchSize, ...
     'PatchesPerImage',patchPerImage);
-dsVal.MiniBatchSize = miniBatchSize;
+validationPath.MiniBatchSize = miniBatchSize;
 
 % training options
 options = trainingOptions('adam', ...
@@ -57,15 +54,14 @@ options = trainingOptions('adam', ...
     'LearnRateSchedule','piecewise', ...
     'LearnRateDropPeriod',5, ...
     'LearnRateDropFactor',0.95, ...
-    'ValidationData',dsVal, ...
+    'ValidationData',validationPath, ...
     'ValidationFrequency',400, ...
     'Plots','training-progress', ...
     'Verbose',false, ...
     'MiniBatchSize',miniBatchSize);
     
-    
 % train and save 
-modelDateTime = datestr(now,'dd-mmm-yyyy-HH-MM-SS');
-[net,info] = trainNetwork(trpatchds,a.lgraph,options);
-save(['trained3DUNet-' modelDateTime '-Epoch-' num2str(options.MaxEpochs) '.mat'],'net');
+modelDateTime = datestr(now,'dd-mmm-yyyy-HH-MM-SS')
+[net,info] = trainNetwork(trainPatch,a.lgraph,options);
+save([a.jsonData.uidoutputdir '/trained3DUNet-' modelDateTime '-Epoch-' num2str(options.MaxEpochs) '.mat'],'net');
 

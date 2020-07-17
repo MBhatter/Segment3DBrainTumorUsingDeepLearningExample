@@ -222,7 +222,7 @@ elif (options.setuptestset):
     for iii in range(options.kfolds):
       (train_set,validation_set,test_set) = GetSetupKfolds(options.kfolds,iii,dataidsfull)
       uidoutputdir= _globaldirectorytemplate % (options.databaseid,options.trainingloss+ _xstr(options.sampleweight),nnid ,options.trainingsolver,options.trainingresample,options.trainingid,options.trainingbatch,options.validationbatch,options.kfolds,iii)
-      setupconfig = {'nnmodel':nnid, 'kfold':iii, 'testset':[ '%s.mat' % databaseinfo[idtest]['uid'] for idtest in test_set], 'validationset': [ '%s.mat' % databaseinfo[idtrain]['uid'] for idtrain in validation_set],'trainset': ['%s.mat' %  databaseinfo[idtrain]['uid'] for idtrain in train_set], 'delimiter':',', 'volCol':3, 'lblCol':4,'stoFoldername': '%slog' % options.databaseid,'fullFileName':options.dbfile }
+      setupconfig = {'nnmodel':nnid, 'kfold':iii, 'testset':[ '%s.mat' % databaseinfo[idtest]['uid'] for idtest in test_set], 'validationset': [ '%s.mat' % databaseinfo[idtrain]['uid'] for idtrain in validation_set],'trainset': ['%s.mat' %  databaseinfo[idtrain]['uid'] for idtrain in train_set], 'delimiter':',', 'volCol':3, 'lblCol':4,'stoFoldername': '%slog' % options.databaseid,'fullFileName':options.dbfile, 'uidoutputdir':uidoutputdir}
       modelprereq    = '%s/tumormodelunet.json' % uidoutputdir
       setupprereq    = '%s/setup.json' % uidoutputdir
       os.system ('mkdir -p %s' % uidoutputdir)

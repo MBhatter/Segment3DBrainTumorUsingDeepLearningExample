@@ -18,6 +18,7 @@ classdef ImageSegmentationBaseClass  < handle
 
       function obj = ImageSegmentationBaseClass(fname)
         % constructor - load all configuration data
+        disp(fname)
         jsonText = fileread(fname);
         obj.jsonData = jsondecode(jsonText);
         
