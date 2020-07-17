@@ -1,4 +1,4 @@
-classdef livermodelclass < ImageSegmentationBaseClass
+classdef hccmriunet3d < ImageSegmentationUnet3D  
    methods
       function [procvolds, proclblfs ] =  preprocess(obj)
         volCol = obj.jsonData.volCol;

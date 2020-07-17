@@ -4,17 +4,16 @@
 classdef ImageSegmentationBaseClass  < handle
    properties
       % Value {mustBeNumeric}
-      lgraph %  @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR 
-             %  TODO - here lgraph is a scalar, can we make this a vector ? I want to load multiple networks 
-      tabledb  %  
-      jsonData %  
+      lgraph %   NN data structure
+      tabledb  %  training database
+      jsonData %  configuration file
    end
-%%    % abstact base class methods
-%%    methods (Abstract)
-%%       preprocess(obj,filename) % derived/inherited classes will define the preprocessing 
-%%       % @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR  - what other NN methods should we add ? 
-%%       loadneuralnet(obj,NumberChannels) % derived/inherited classes will define the architecture
-%%    end
+   % abstact base class methods
+   methods (Abstract)
+      preprocess(obj) % derived/inherited classes will define the preprocessing 
+      % TODO - @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR  - what other NN methods should we add ? 
+      loadneuralnet(obj,NumberChannels) % derived/inherited classes will define the architecture
+   end
    methods
 
       function obj = ImageSegmentationBaseClass(fname)
