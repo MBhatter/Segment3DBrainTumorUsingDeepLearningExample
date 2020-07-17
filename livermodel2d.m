@@ -9,16 +9,14 @@ close all
 % https://www.mathworks.com/help/matlab/matlab_external/use-python-dict-type-in-matlab.html
 % order = py.dict(pyargs('soup',3.57,'bread',2.29,'bacon',3.91,'salad',5.00))
 
-trainingList = { './hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/000/setup.json', './hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/001/setup.json', './hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/002/setup.json', './hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/003/setup.json', './hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/004/setup.json'};
+trainingList = { './hccmrilog/dscimg/unet2d/adadelta/512/run_a/005020/005/000/setup.json', './hccmrilog/dscimg/unet2d/adadelta/512/run_a/005020/005/001/setup.json', './hccmrilog/dscimg/unet2d/adadelta/512/run_a/005020/005/002/setup.json', './hccmrilog/dscimg/unet2d/adadelta/512/run_a/005020/005/003/setup.json', './hccmrilog/dscimg/unet2d/adadelta/512/run_a/005020/005/004/setup.json'};
 
 for idtrain= 1: numel(trainingList )
   % walker - best way to parallelize ? 
-  a = hccmriunet3d (trainingList{idtrain} ) ; 
-  
+  a = hccmriunet2d (trainingList{idtrain} ) ; 
   
   %% load nifti data 
-  %% TODO - check if files already available
-  %a.preprocess()
+  a.preprocess()
   
   % before starting, need to define "n" which is the number of channels.
   NumberOfChannels = 1;
@@ -38,17 +36,11 @@ for idtrain= 1: numel(trainingList )
   validationMask = pixelLabelDatastore(fullfile(a.jsonData.stoFoldername,'/preprocessedDataset/labelsMain/',a.jsonData.validationset),classNames,pixelLabelID, 'FileExtensions','.mat','ReadFcn',procReader );
   
   % Need Random Patch Extraction on testing and validation Data
-  patchSize = [64 64 64];
-  patchPerImage = 16;
   miniBatchSize = 8;
-    %training patch datastore
-  trainPatch = randomPatchExtractionDatastore(trainData,trainMask,patchSize, ...
-      'PatchesPerImage',patchPerImage);
-  trainPatch.MiniBatchSize = miniBatchSize;
-    %validation patch datastore
-  validationPatch = randomPatchExtractionDatastore(validationData,validationMask,patchSize, ...
-      'PatchesPerImage',patchPerImage);
-  validationPatch.MiniBatchSize = miniBatchSize;
+  %training datastore
+  trainingSet = pixelLabelImageDatastore(trainData,trainMask,patchSize, 'MiniBatchSize', miniBatchSize);
+  %validation datastore
+  validationSet = pixelLabelImageDatastore(validationData,validationMask, 'MiniBatchSize', miniBatchSize);
   
   % training options
   options = trainingOptions('adam', ...
@@ -57,7 +49,7 @@ for idtrain= 1: numel(trainingList )
       'LearnRateSchedule','piecewise', ...
       'LearnRateDropPeriod',5, ...
       'LearnRateDropFactor',0.95, ...
-      'ValidationData',validationPatch, ...
+      'ValidationData',validationSet, ...
       'ValidationFrequency',400, ...
       'Plots','training-progress', ...
       'Verbose',false, ...
@@ -65,7 +57,7 @@ for idtrain= 1: numel(trainingList )
       
   % train and save 
   modelDateTime = datestr(now,'dd-mmm-yyyy-HH-MM-SS')
-  [net,info] = trainNetwork(trainPatch,a.lgraph,options);
+  [net,info] = trainNetwork(trainingSet,a.lgraph,options);
   save([a.jsonData.uidoutputdir '/trained3DUNet-' modelDateTime '-Epoch-' num2str(options.MaxEpochs) '.mat'],'net');
 
 end
