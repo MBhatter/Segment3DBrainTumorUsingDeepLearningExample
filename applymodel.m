@@ -3,13 +3,15 @@
 % outputpath - output path where files will be written
 function applymodel( inputniftifilepath, mynetwork, outputpath )
 
-%% read setup parameters
-
 %% load nifti file
+info = niftiinfo(inputniftifilepath );
+niivolume = niftiread(info);
 
 %% load trained network
+load(mynetwork );
 
 %% apply trained network to nifti image
+tempSeg = semanticseg(niivolume ,net,'ExecutionEnvironment','cpu');
 
 %% write output to disk as a nifti file
 
