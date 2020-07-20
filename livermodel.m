@@ -66,6 +66,6 @@ for idtrain= 1: numel(trainingList )
   % train and save 
   modelDateTime = datestr(now,'dd-mmm-yyyy-HH-MM-SS')
   [net,info] = trainNetwork(trainPatch,a.lgraph,options);
-  save([a.jsonData.uidoutputdir '/trained3DUNet-' modelDateTime '-Epoch-' num2str(options.MaxEpochs) '.mat'],'net');
-
+  save([a.jsonData.uidoutputdir '/trained3DUNet.mat'],'net','options','modelDateTime');
 end
+

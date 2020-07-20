@@ -223,7 +223,7 @@ elif (options.setuptestset):
       (train_set,validation_set,test_set) = GetSetupKfolds(options.kfolds,iii,dataidsfull)
       uidoutputdir= _globaldirectorytemplate % (options.databaseid,options.trainingloss+ _xstr(options.sampleweight),nnid ,options.trainingsolver,options.trainingresample,options.trainingid,options.trainingbatch,options.validationbatch,options.kfolds,iii)
       setupconfig = {'nnmodel':nnid, 'kfold':iii, 'testset':[ '%s.mat' % databaseinfo[idtest]['uid'] for idtest in test_set], 'validationset': [ '%s.mat' % databaseinfo[idtrain]['uid'] for idtrain in validation_set],'trainset': ['%s.mat' %  databaseinfo[idtrain]['uid'] for idtrain in train_set], 'delimiter':',', 'volCol':3, 'lblCol':4,'stoFoldername': '%slog' % options.databaseid,'fullFileName':options.dbfile, 'uidoutputdir':uidoutputdir}
-      modelprereq    = '%s/tumormodelunet.json' % uidoutputdir
+      modelprereq    = '%s/trained3DUNet.mat' % uidoutputdir
       setupprereq    = '%s/setup.json' % uidoutputdir
       os.system ('mkdir -p %s' % uidoutputdir)
       with open(setupprereq, 'w') as json_file:
@@ -235,18 +235,21 @@ elif (options.setuptestset):
       for idtest in test_set:
          # write target
          imageprereq    = '$(TRAININGROOT)/%s' % databaseinfo[idtest]['image']
-         maskprereq     = '$(TRAININGROOT)/ImageDatabase/%s/unet/mask.nii.gz' % databaseinfo[idtest]['uid']
-         segmaketarget = '$(TRAININGROOT)/ImageDatabase/%s/%s/tumor.nii.gz' % (databaseinfo[idtest]['uid'], nnid )
+         maskprereq     = '%slog/ImageDatabase/%s/%s/mask.nii.gz'  % (options.databaseid, databaseinfo[idtest]['uid'], nnid)
+         segmaketarget  = '%slog/ImageDatabase/%s/%s/tumor.nii.gz' % (options.databaseid, databaseinfo[idtest]['uid'], nnid)
          uiddictionary[iii].append(databaseinfo[idtest]['uid'] )
          cvtestcmd = "python ./applymodel.py --predictimage=$< --modelpath=$(word 3, $^) --maskimage=$(word 2, $^) --segmentation=$@"  
          fileHandle.write('%s: %s %s %s\n' % (segmaketarget ,imageprereq,maskprereq,    modelprereq  ) )
+         fileHandle.write('\t%s\n' % cvtestcmd)
+         fileHandle.write('%s: %s %s\n' % (maskprereq,imageprereq,modelprereq  ) )
+         cvtestcmd = "./run_applymodel.sh $(MATLABROOT) $^ $@"  
          fileHandle.write('\t%s\n' % cvtestcmd)
 
 
   # build job list
   with open(makefilename , 'r') as original: datastream = original.read()
   with open(makefilename , 'w') as modified:
-     modified.write( 'TRAININGROOT=%s\n' % options.rootlocation +'DATABASEID=unet%s\n' % options.databaseid + 'SQLITEDB=%s\n' % options.sqlitefile + "models: %s \n" % ' '.join(modeltargetlist))
+     modified.write( 'TRAININGROOT=%s\nMATLABROOT      := /data/apps/MATLAB/R2019a/\n' % options.rootlocation +'DATABASEID=unet%s\n' % options.databaseid + 'SQLITEDB=%s\n' % options.sqlitefile + "models: %s \n" % ' '.join(modeltargetlist))
      for idkey in uiddictionary.keys():
         modified.write("UIDLIST%d=%s \n" % (idkey,' '.join(uiddictionary[idkey])))
      modified.write("UIDLIST=%s \n" % " ".join(map(lambda x : "$(UIDLIST%d)" % x, uiddictionary.keys()))    +datastream)
