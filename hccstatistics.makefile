@@ -1,13 +1,15 @@
 SHELL := /bin/bash
+DATADIR = /rsrch1/ip/dtfuentes/github/hccdetection/anonymize/
+WORKDIR = hccmrilog/ImageDatabase/
 include hccmri512kfold005.makefile
-mask:        $(addprefix hccmrilog/ImageDatabase/,$(addsuffix /unet3d/mask.nii.gz,$(UIDLIST)))
+mask:        $(addprefix $(WORKDIR),$(addsuffix /unet3d/label.nii.gz,$(UIDLIST)))
 overlap:     $(addprefix $(WORKDIR)/,$(addsuffix /$(DATABASEID)/overlap.sql,$(UIDLIST)))
-scaled: $(addprefix $(WORKDIR)/,$(addsuffix /Art.scaled.nii.gz,$(UIDLIST)))  
+scaled:   $(addprefix $(WORKDIR)/,$(addsuffix /Art.scaled.nii.gz,$(UIDLIST)))  
 combined: $(addprefix $(WORKDIR)/,$(addsuffix /Art.combined.nii.gz,$(UIDLIST)))  
 
 ## pre processing
-%/Art.scaled.nii.gz: %/Art.raw.nii.gz
-	python normalization.py --imagefile=$< 
+$(WORKDIR)/%/Art.scaled.nii.gz: $(DATADIR)/%/Art.raw.nii.gz
+	mkdir -p $(@D); python normalization.py --imagefile=$<  --output=$@
 %/Art.combined.nii.gz: %/Art.scaled.nii.gz %/Truth.nii.gz
 	c3d $^ -binarize  -omc $@
 ## dice statistics

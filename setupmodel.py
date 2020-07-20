@@ -229,20 +229,20 @@ elif (options.setuptestset):
       with open(setupprereq, 'w') as json_file:
         json.dump(setupconfig , json_file)
       fileHandle.write('%s: %s \n' % (modelprereq,setupprereq )    )
-      fileHandle.write('\tpython hccmodel.py --databaseid=%s --traintumor --idfold=%d --kfolds=%d --trainingresample=%d --numepochs=50\n' % (options.databaseid,iii,options.kfolds,options.trainingresample))
+      fileHandle.write('\techo python hccmodel.py --databaseid=%s --traintumor --idfold=%d --kfolds=%d --trainingresample=%d --numepochs=50\n' % (options.databaseid,iii,options.kfolds,options.trainingresample))
       modeltargetlist.append(modelprereq    )
       uiddictionary[iii]=[]
       for idtest in test_set:
          # write target
          imageprereq    = '$(TRAININGROOT)/%s' % databaseinfo[idtest]['image']
-         maskprereq     = '%slog/ImageDatabase/%s/%s/mask.nii.gz'  % (options.databaseid, databaseinfo[idtest]['uid'], nnid)
+         maskprereq     = '%slog/ImageDatabase/%s/%s/label.nii.gz'  % (options.databaseid, databaseinfo[idtest]['uid'], nnid)
          segmaketarget  = '%slog/ImageDatabase/%s/%s/tumor.nii.gz' % (options.databaseid, databaseinfo[idtest]['uid'], nnid)
          uiddictionary[iii].append(databaseinfo[idtest]['uid'] )
          cvtestcmd = "python ./applymodel.py --predictimage=$< --modelpath=$(word 3, $^) --maskimage=$(word 2, $^) --segmentation=$@"  
          fileHandle.write('%s: %s %s %s\n' % (segmaketarget ,imageprereq,maskprereq,    modelprereq  ) )
          fileHandle.write('\t%s\n' % cvtestcmd)
          fileHandle.write('%s: %s %s\n' % (maskprereq,imageprereq,modelprereq  ) )
-         cvtestcmd = "./run_applymodel.sh $(MATLABROOT) $^ $@"  
+         cvtestcmd = "mkdir -p $(@D);./run_applymodel.sh $(MATLABROOT) $^ $(@D)"  
          fileHandle.write('\t%s\n' % cvtestcmd)
 
 
