@@ -10,7 +10,6 @@ classdef ImageSegmentationBaseClass  < handle
    end
    % abstact base class methods
    methods (Abstract)
-      preprocess(obj) % derived/inherited classes will define the preprocessing 
       % TODO - @amaleki101 @EGates1 @MBhatter @psarlashkar @RajiMR  - what other NN methods should we add ? 
       loadneuralnet(obj,NumberChannels) % derived/inherited classes will define the architecture
    end

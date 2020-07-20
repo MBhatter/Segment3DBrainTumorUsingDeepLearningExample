@@ -9,12 +9,22 @@ close all
 % https://www.mathworks.com/help/matlab/matlab_external/use-python-dict-type-in-matlab.html
 % order = py.dict(pyargs('soup',3.57,'bread',2.29,'bacon',3.91,'salad',5.00))
 
-trainingList = { './hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/000/setup.json', './hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/001/setup.json', './hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/002/setup.json', './hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/003/setup.json', './hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/004/setup.json'};
+trainingList = {...
+     hccmriunet3d('./hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/000/setup.json'),...
+     hccmriunet3d('./hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/001/setup.json'),...
+     hccmriunet3d('./hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/002/setup.json'),...
+     hccmriunet3d('./hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/003/setup.json'),...
+     hccmriunet3d('./hccmrilog/dscimg/unet3d/adadelta/512/run_a/005020/005/004/setup.json'),...
+     ImageSegmentationDensenet3D('./hccmrilog/dscimg/densenet3d/adadelta/512/run_a/005020/005/000/setup.json'),...
+     ImageSegmentationDensenet3D('./hccmrilog/dscimg/densenet3d/adadelta/512/run_a/005020/005/001/setup.json'),...
+     ImageSegmentationDensenet3D('./hccmrilog/dscimg/densenet3d/adadelta/512/run_a/005020/005/002/setup.json'),...
+     ImageSegmentationDensenet3D('./hccmrilog/dscimg/densenet3d/adadelta/512/run_a/005020/005/003/setup.json'),...
+     ImageSegmentationDensenet3D('./hccmrilog/dscimg/densenet3d/adadelta/512/run_a/005020/005/004/setup.json'),...
+                };
 
 for idtrain= 1: numel(trainingList )
   % walker - best way to parallelize ? 
-  a = hccmriunet3d (trainingList{idtrain} ) ; 
-  
+  a = trainingList{idtrain} ; 
   
   %% load nifti data 
   %% TODO - check if files already available
@@ -28,8 +38,8 @@ for idtrain= 1: numel(trainingList )
   procReader = @(x) matRead(x);
   
   % read image volume data
-  trainData      = imageDatastore(fullfile(a.jsonData.stoFoldername,'/preprocessedDataset/imagesMain/',a.jsonData.trainset     ) , 'FileExtensions','.mat','ReadFcn',procReader);
-  validationData = imageDatastore(fullfile(a.jsonData.stoFoldername,'/preprocessedDataset/imagesMain/',a.jsonData.validationset) , 'FileExtensions','.mat','ReadFcn',procReader);
+  trainData      = imageDatastore(fullfile(a.jsonData.stoFoldername,'/ImageDatabase/',a.jsonData.trainset     ,'Art.scaled.nii.gz') , 'FileExtensions','.nii.gz','ReadFcn',procReader);
+  validationData = imageDatastore(fullfile(a.jsonData.stoFoldername,'/ImageDatabase/',a.jsonData.validationset,'Art.scaled.nii.gz') , 'FileExtensions','.nii.gz','ReadFcn',procReader);
   
   % read these into pixellabeldatastores
   classNames = ["background","liver"];
