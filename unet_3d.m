@@ -7,7 +7,7 @@ lgraph = layerGraph();
 % array of layers.
 
 tempLayers = [
-    image3dInputLayer([64 64 64 4],"Name","input","Normalization","none")
+    image3dInputLayer([64 64 64 n],"Name","input","Normalization","none")
     batchNormalizationLayer("Name","BN_Module1_Level1")
     convolution3dLayer([3 3 3],32,"Name","conv_Module1_Level1","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module1_Level1")
