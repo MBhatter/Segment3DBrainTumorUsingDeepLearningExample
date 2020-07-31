@@ -52,8 +52,8 @@ tempLayers = [
     batchNormalizationLayer("Name","BN_Module5_Level1")
     convolution2dLayer([3 3],256,"Name","conv_Module5_Level1","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module5_Level1")
-    convolution2dLayer([3 3],256,"Name","conv_Module5_Level2","Padding","same","WeightsInitializer","narrow-normal")
     batchNormalizationLayer("Name","BN_Module5_Level2")
+    convolution2dLayer([3 3],256,"Name","conv_Module5_Level2","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module5_Level2")
     transposedConv2dLayer([2 2],256,"Name","transConv_Module5","BiasLearnRateFactor",0,"Stride",[2 2],"WeightLearnRateFactor",0,"WeightsInitializer","ones")];
 lgraph = addLayers(lgraph,tempLayers);
