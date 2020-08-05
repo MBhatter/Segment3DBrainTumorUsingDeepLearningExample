@@ -16,7 +16,7 @@ lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     batchNormalizationLayer("Name","BN_Module1_Level2")
-    convolution2dLayer([3 3],64,"Name","conv_Module1_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    convolution2dLayer([3 3],44,"Name","conv_Module1_Level2","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module1_Level2")];
 lgraph = addLayers(lgraph,tempLayers);
 
@@ -26,13 +26,13 @@ lgraph = addLayers(lgraph,tempLayers);
 tempLayers = [
     maxPooling2dLayer([2 2],"Name","maxpool_Module1","Padding","same","Stride",[2 2])
     batchNormalizationLayer("Name","BN_Module2_Level1")
-    convolution2dLayer([3 3],64,"Name","conv_Module2_Level1","Padding","same","WeightsInitializer","narrow-normal")
+    convolution2dLayer([3 3],44,"Name","conv_Module2_Level1","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module2_Level1")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     batchNormalizationLayer("Name","BN_Module2_Level2")
-    convolution2dLayer([3 3],128,"Name","conv_Module2_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    convolution2dLayer([3 3],56,"Name","conv_Module2_Level2","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module2_Level2")];
 lgraph = addLayers(lgraph,tempLayers);
 
@@ -42,13 +42,13 @@ lgraph = addLayers(lgraph,tempLayers);
 tempLayers = [
     maxPooling2dLayer([2 2],"Name","maxpool_Module2","Padding","same","Stride",[2 2])
     batchNormalizationLayer("Name","BN_Module3_Level1")
-    convolution2dLayer([3 3],128,"Name","conv_Module3_Level1","Padding","same","WeightsInitializer","narrow-normal")
+    convolution2dLayer([3 3],56,"Name","conv_Module3_Level1","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module3_Level1")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     batchNormalizationLayer("Name","BN_Module3_Level2")
-    convolution2dLayer([3 3],256,"Name","conv_Module3_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    convolution2dLayer([3 3],68,"Name","conv_Module3_Level2","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module3_Level2")];
 lgraph = addLayers(lgraph,tempLayers);
 
@@ -58,67 +58,67 @@ lgraph = addLayers(lgraph,tempLayers);
 tempLayers = [
     maxPooling2dLayer([2 2],"Name","maxpool_Module3","Padding","same","Stride",[2 2])
     batchNormalizationLayer("Name","BN_Module4_Level1")
-    convolution2dLayer([3 3],256,"Name","conv_Module4_Level1","Padding","same","WeightsInitializer","narrow-normal")
+    convolution2dLayer([3 3],68,"Name","conv_Module4_Level1","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module4_Level1")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     batchNormalizationLayer("Name","BN_Module4_Level2")
-    convolution2dLayer([3 3],512,"Name","conv_Module4_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    convolution2dLayer([3 3],80,"Name","conv_Module4_Level2","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module4_Level2")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     depthConcatenationLayer(2,"Name","depthcat_5")
-    upsample2dLayer([2 2],512,"Name","upsample_Module4","Stride",[2 2])];
+    transposedConv2dLayer([2 2],80,"Name","transConv_Module4","BiasLearnRateFactor",0,"Stride",[2 2],"WeightLearnRateFactor",0,"WeightsInitializer","ones")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     depthConcatenationLayer(2,"Name","depthcat_4")
     batchNormalizationLayer("Name","BN_Module5_Level1")
-    convolution2dLayer([3 3],256,"Name","conv_Module5_Level1","Padding","same","WeightsInitializer","narrow-normal")
+    convolution2dLayer([3 3],68,"Name","conv_Module5_Level1","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module5_Level1")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     batchNormalizationLayer("Name","BN_Module5_Level2")
-    convolution2dLayer([3 3],256,"Name","conv_Module5_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    convolution2dLayer([3 3],68,"Name","conv_Module5_Level2","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module5_Level2")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     depthConcatenationLayer(2,"Name","depthcat_7")
-    upsample2dLayer([2 2],256,"Name","upsample_Module5","Stride",[2 2])];
+    transposedConv2dLayer([2 2],68,"Name","transConv_Module5","BiasLearnRateFactor",0,"Stride",[2 2],"WeightLearnRateFactor",0,"WeightsInitializer","ones")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     depthConcatenationLayer(2,"Name","depthcat_6")
     batchNormalizationLayer("Name","BN_Module6_Level1")
-    convolution2dLayer([3 3],128,"Name","conv_Module6_Level1","Padding","same","WeightsInitializer","narrow-normal")
+    convolution2dLayer([3 3],56,"Name","conv_Module6_Level1","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module6_Level1")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     batchNormalizationLayer("Name","BN_Module6_Level2")
-    convolution2dLayer([3 3],128,"Name","conv_Module6_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    convolution2dLayer([3 3],56,"Name","conv_Module6_Level2","Padding","same","WeightsInitializer","narrow-normal")
     reluLayer("Name","relu_Module6_Level2")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     depthConcatenationLayer(2,"Name","depthcat_8")
-    upsample2dLayer([2 2],128,"Name","upsample_Module6","Stride",[2 2])];
+    transposedConv2dLayer([2 2],56,"Name","transConv_Module6","BiasLearnRateFactor",0,"Stride",[2 2],"WeightLearnRateFactor",0,"WeightsInitializer","ones")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     depthConcatenationLayer(2,"Name","depthcat_9")
     batchNormalizationLayer("Name","BN_Module7_Level1")
-    convolution2dLayer([3 3],64,"Name","conv_Module7_Level1","Padding","same")
+    convolution2dLayer([3 3],44,"Name","conv_Module7_Level1","Padding","same")
     reluLayer("Name","relu_Module7_Level1")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     batchNormalizationLayer("Name","BN_Module7_Level2")
-    convolution2dLayer([3 3],64,"Name","conv_Module7_Level2","Padding","same")
+    convolution2dLayer([3 3],44,"Name","conv_Module7_Level2","Padding","same")
     reluLayer("Name","relu_Module7_Level2")];
 lgraph = addLayers(lgraph,tempLayers);
 
@@ -153,15 +153,15 @@ lgraph = connectLayers(lgraph,"depthcat_3","depthcat_4/in1");
 lgraph = connectLayers(lgraph,"relu_Module4_Level1","BN_Module4_Level2");
 lgraph = connectLayers(lgraph,"relu_Module4_Level1","depthcat_5/in2");
 lgraph = connectLayers(lgraph,"relu_Module4_Level2","depthcat_5/in1");
-lgraph = connectLayers(lgraph,"upsample_Module4","depthcat_4/in2");
+lgraph = connectLayers(lgraph,"transConv_Module4","depthcat_4/in2");
 lgraph = connectLayers(lgraph,"relu_Module5_Level1","BN_Module5_Level2");
 lgraph = connectLayers(lgraph,"relu_Module5_Level1","depthcat_7/in1");
 lgraph = connectLayers(lgraph,"relu_Module5_Level2","depthcat_7/in2");
-lgraph = connectLayers(lgraph,"upsample_Module5","depthcat_6/in1");
+lgraph = connectLayers(lgraph,"transConv_Module5","depthcat_6/in1");
 lgraph = connectLayers(lgraph,"relu_Module6_Level1","BN_Module6_Level2");
 lgraph = connectLayers(lgraph,"relu_Module6_Level1","depthcat_8/in1");
 lgraph = connectLayers(lgraph,"relu_Module6_Level2","depthcat_8/in2");
-lgraph = connectLayers(lgraph,"upsample_Module6","depthcat_9/in2");
+lgraph = connectLayers(lgraph,"transConv_Module6","depthcat_9/in2");
 lgraph = connectLayers(lgraph,"relu_Module7_Level1","BN_Module7_Level2");
 lgraph = connectLayers(lgraph,"relu_Module7_Level1","depthcat_10/in1");
 lgraph = connectLayers(lgraph,"relu_Module7_Level2","depthcat_10/in2");
