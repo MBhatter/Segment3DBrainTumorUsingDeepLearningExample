@@ -1,6 +1,7 @@
+%% Create Layer Graph
+% Create the layer graph variable to contain the network layers.
 %define n as number of channels
 n = 1;
-
 lgraph = layerGraph();
 %% Add Layer Branches
 % Add the branches of the network to the layer graph. Each branch is a linear 
@@ -69,7 +70,7 @@ lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     concatenationLayer(4,2,"Name","concat_4")
-    transposedConv3dLayer([2 2 2],512,"Name","transConv_Module4","BiasLearnRateFactor",0,"Stride",[2 2 2],"WeightLearnRateFactor",0,"WeightsInitializer","ones")];
+    upsample3dLayer([2 2 2],512,"Name","upsample_Module4","Stride",[2 2 2])];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
@@ -87,7 +88,7 @@ lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     concatenationLayer(4,2,"Name","concat_5")
-    transposedConv3dLayer([2 2 2],256,"Name","transConv_Module5","BiasLearnRateFactor",0,"Stride",[2 2 2],"WeightLearnRateFactor",0,"WeightsInitializer","ones")];
+    upsample3dLayer([2 2 2],256,"Name","upsample_Module5","Stride",[2 2 2])];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
@@ -105,7 +106,7 @@ lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
     concatenationLayer(4,2,"Name","concat_6")
-    transposedConv3dLayer([2 2 2],128,"Name","transConv_Module6","BiasLearnRateFactor",0,"Stride",[2 2 2],"WeightLearnRateFactor",0,"WeightsInitializer","ones")];
+    upsample3dLayer([2 2 2],128,"Name","upsample_Module6","Stride",[2 2 2])];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
@@ -126,7 +127,7 @@ tempLayers = [
     batchNormalizationLayer("Name","BN_Module7_Level3")
     convolution3dLayer([1 1 1],2,"Name","ConvLast_Module7")
     softmaxLayer("Name","softmax")
-    dicePixelClassification3dLayer("Name","output")];
+    dicePixelClassification3dLayer("output")];
 lgraph = addLayers(lgraph,tempLayers);
 
 % clean up helper variable
@@ -152,15 +153,15 @@ lgraph = connectLayers(lgraph,"concat_3","concat3/in1");
 lgraph = connectLayers(lgraph,"relu_Module4_Level1","BN_Module4_Level2");
 lgraph = connectLayers(lgraph,"relu_Module4_Level1","concat_4/in1");
 lgraph = connectLayers(lgraph,"relu_Module4_Level2","concat_4/in2");
-lgraph = connectLayers(lgraph,"transConv_Module4","concat3/in2");
+lgraph = connectLayers(lgraph,"upsample_Module4","concat3/in2");
 lgraph = connectLayers(lgraph,"relu_Module5_Level1","BN_Module5_Level2");
 lgraph = connectLayers(lgraph,"relu_Module5_Level1","concat_5/in1");
 lgraph = connectLayers(lgraph,"relu_Module5_Level2","concat_5/in2");
-lgraph = connectLayers(lgraph,"transConv_Module5","concat2/in2");
+lgraph = connectLayers(lgraph,"upsample_Module5","concat2/in2");
 lgraph = connectLayers(lgraph,"relu_Module6_Level1","BN_Module6_Level2");
 lgraph = connectLayers(lgraph,"relu_Module6_Level1","concat_6/in1");
 lgraph = connectLayers(lgraph,"relu_Module6_Level2","concat_6/in2");
-lgraph = connectLayers(lgraph,"transConv_Module6","concat1/in2");
+lgraph = connectLayers(lgraph,"upsample_Module6","concat1/in2");
 lgraph = connectLayers(lgraph,"relu_Module7_Level1","BN_Module7_Level2");
 lgraph = connectLayers(lgraph,"relu_Module7_Level1","concat/in2");
 lgraph = connectLayers(lgraph,"relu_Module7_Level2","concat/in1");
