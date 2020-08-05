@@ -1,8 +1,7 @@
-%define n as number of channels
-n = 1;
 %% Create Layer Graph
 % Create the layer graph variable to contain the network layers.
-
+%define n as number of channels
+n = 1;
 lgraph = layerGraph();
 %% Add Layer Branches
 % Add the branches of the network to the layer graph. Each branch is a linear 
@@ -11,7 +10,7 @@ lgraph = layerGraph();
 tempLayers = [
     imageInputLayer([64 64 n],"Name","input","Normalization","none")
     batchNormalizationLayer("Name","BN_Module1_Level1")
-    convolution2dLayer([3 3],64,"Name","conv_Module1_Level1","Padding","same","WeightsInitializer","narrow-normal")];
+    convolution2dLayer([3 3],32,"Name","conv_Module1_Level1","Padding","same","WeightsInitializer","narrow-normal")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
@@ -28,7 +27,7 @@ lgraph = addLayers(lgraph,tempLayers);
 tempLayers = [
     maxPooling2dLayer([2 2],"Name","maxpool_Module1","Padding","same","Stride",[2 2])
     batchNormalizationLayer("Name","BN_Module2_Level1")
-    convolution2dLayer([3 3],128,"Name","conv_Module2_Level1","Padding","same","WeightsInitializer","narrow-normal")];
+    convolution2dLayer([3 3],64,"Name","conv_Module2_Level1","Padding","same","WeightsInitializer","narrow-normal")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
@@ -45,7 +44,7 @@ lgraph = addLayers(lgraph,tempLayers);
 tempLayers = [
     maxPooling2dLayer([2 2],"Name","maxpool_Module2","Padding","same","Stride",[2 2])
     batchNormalizationLayer("Name","BN_Module3_Level1")
-    convolution2dLayer([3 3],256,"Name","conv_Module3_Level1","Padding","same","WeightsInitializer","narrow-normal")];
+    convolution2dLayer([3 3],128,"Name","conv_Module3_Level1","Padding","same","WeightsInitializer","narrow-normal")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
@@ -62,7 +61,7 @@ lgraph = addLayers(lgraph,tempLayers);
 tempLayers = [
     maxPooling2dLayer([2 2],"Name","maxpool_Module3","Padding","same","Stride",[2 2])
     batchNormalizationLayer("Name","BN_Module4_Level1")
-    convolution2dLayer([3 3],512,"Name","conv_Module4_Level1","Padding","same","WeightsInitializer","narrow-normal")];
+    convolution2dLayer([3 3],256,"Name","conv_Module4_Level1","Padding","same","WeightsInitializer","narrow-normal")];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
@@ -74,7 +73,7 @@ lgraph = addLayers(lgraph,tempLayers);
 tempLayers = [
     additionLayer(2,"Name","addition_4")
     reluLayer("Name","relu_Module4_Level2")
-    transposedConv2dLayer([2 2],512,"Name","transConv_Module4","BiasLearnRateFactor",0,"Stride",[2 2],"WeightLearnRateFactor",0,"WeightsInitializer","ones")];
+    upsample2dLayer([2 2],512,"Name","upsample_Module4","Stride",[2 2])];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
@@ -92,7 +91,7 @@ lgraph = addLayers(lgraph,tempLayers);
 tempLayers = [
     additionLayer(2,"Name","addition_6")
     reluLayer("Name","relu_Module5_Level2")
-    transposedConv2dLayer([2 2],256,"Name","transConv_Module5","BiasLearnRateFactor",0,"Stride",[2 2],"WeightLearnRateFactor",0,"WeightsInitializer","ones")];
+    upsample2dLayer([2 2],256,"Name","upsample_Module5","Stride",[2 2])];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
@@ -110,7 +109,7 @@ lgraph = addLayers(lgraph,tempLayers);
 tempLayers = [
     additionLayer(2,"Name","addition_8")
     reluLayer("Name","relu_Module6_Level2")
-    transposedConv2dLayer([2 2],128,"Name","transConv_Module6","BiasLearnRateFactor",0,"Stride",[2 2],"WeightLearnRateFactor",0,"WeightsInitializer","ones")];
+    upsample2dLayer([2 2],128,"Name","upsample_Module6","Stride",[2 2])];
 lgraph = addLayers(lgraph,tempLayers);
 
 tempLayers = [
@@ -157,15 +156,15 @@ lgraph = connectLayers(lgraph,"relu_Module3_Level2","concat_3/in2");
 lgraph = connectLayers(lgraph,"conv_Module4_Level1","relu_Module4_Level1");
 lgraph = connectLayers(lgraph,"conv_Module4_Level1","addition_4/in1");
 lgraph = connectLayers(lgraph,"conv_Module4_Level2","addition_4/in2");
-lgraph = connectLayers(lgraph,"transConv_Module4","concat_3/in1");
+lgraph = connectLayers(lgraph,"upsample_Module4","concat_3/in1");
 lgraph = connectLayers(lgraph,"conv_Module5_Level1","relu_Module5_Level1");
 lgraph = connectLayers(lgraph,"conv_Module5_Level1","addition_6/in2");
 lgraph = connectLayers(lgraph,"conv_Module5_Level2","addition_6/in1");
-lgraph = connectLayers(lgraph,"transConv_Module5","concat_2/in1");
+lgraph = connectLayers(lgraph,"upsample_Module5","concat_2/in1");
 lgraph = connectLayers(lgraph,"conv_Module6_Level1","relu_Module6_Level1");
 lgraph = connectLayers(lgraph,"conv_Module6_Level1","addition_8/in1");
 lgraph = connectLayers(lgraph,"conv_Module6_Level2","addition_8/in2");
-lgraph = connectLayers(lgraph,"transConv_Module6","concat_1/in1");
+lgraph = connectLayers(lgraph,"upsample_Module6","concat_1/in1");
 lgraph = connectLayers(lgraph,"conv_Module7_Level1","relu_Module7_Level1");
 lgraph = connectLayers(lgraph,"conv_Module7_Level1","addition_10/in1");
 lgraph = connectLayers(lgraph,"conv_Module7_Level2","addition_10/in2");
