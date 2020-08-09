@@ -1,0 +1,242 @@
+%fresh start
+clc
+clear all
+close all
+
+gpuDevice(1)
+
+
+% brats training and validation dataset locations
+trImLoc = fullfile('/tmp/BraTS/preprocessedDataset/imagesTr');
+valImLoc = fullfile('/tmp/BraTS/preprocessedDataset/imagesVal');
+
+TrLblLoc = fullfile('/tmp/BraTS/preprocessedDataset/labelsTr');
+valLblLoc = fullfile('/tmp/BraTS/preprocessedDataset/labelsVal');
+
+% create directories for 2d images and labels
+mkdir('/tmp/BraTS/2dTrImages');
+mkdir('/tmp/BraTS/2dTrLabels');
+mkdir('/tmp/BraTS/2dValImages');
+mkdir('/tmp/BraTS/2dValLabels');
+
+% name new directories
+Tr2dImLoc = fullfile('/tmp/BraTS/2dTrImages');
+Tr2dlblLoc = fullfile('/tmp/BraTS/2dTrLabels');
+val2dImLoc = fullfile('/tmp/BraTS/2dValImages');
+val2dLblLoc = fullfile('/tmp/BraTS/2dValLabels');
+
+% training set: make a loop to read in all .mat files and convert to slices
+trainImset = dir(trImLoc);
+trainLblset = dir(TrLblLoc);
+numFiles = length(trainImset);
+trainImTable = struct2table(trainImset);
+trainLblTable = struct2table(trainLblset);
+
+
+ voldestcell = fullfile(TrLblLoc, trainImTable{3,"name"});
+ voldest = cell2mat(voldestcell);
+ imLoad = load(voldest);
+ testVol = imLoad.cropLabel;
+
+for id = 1:400
+    mkdir(fullfile(Tr2dImLoc,num2str(id)));
+    ImLoc2d = fullfile(Tr2dImLoc, num2str(id));
+    voldestcell = fullfile(trImLoc, trainImTable{id+2,"name"});
+    voldest = cell2mat(voldestcell);
+    imLoad = load(voldest);
+    imVol = imLoad.cropVol;
+    images4d2file(imVol, ImLoc2d, id);
+    
+    mkdir(fullfile(Tr2dlblLoc, num2str(id)));
+    lblLoc2 = fullfile(Tr2dlblLoc, num2str(id));
+    lbldestcell = fullfile(TrLblLoc, trainLblTable{id+2, "name"});
+    lbldest = cell2mat(lbldestcell);
+    lblLoad = load(lbldest);
+    lblVol = lblLoad.cropLabel;
+    labels4d2file(lblVol, lblLoc2, id);
+end
+
+
+% validation set: make a loop to read in all.mat files and convert to slices
+valImset = dir(valImLoc);
+valLblset = dir(valLblLoc);
+valImTable = struct2table(valImset);
+valLblTable = struct2table(valLblset);
+numFiles = length(valImset)-2;
+
+for id = 1:numFiles
+    mkdir(fullfile(val2dImLoc,num2str(id)));
+    valIm2 = fullfile(val2dImLoc, num2str(id));
+    voldestcell = fullfile(valImLoc, valImTable{id+2, "name"});
+    voldest = cell2mat(voldestcell);
+    imLoad = load(voldest);
+    imVol = imLoad.cropVol;
+    images4d2file(imVol, valIm2, id);
+    
+    mkdir(fullfile(val2dLblLoc,num2str(id)));
+    valLbl2 = fullfile(val2dLblLoc, num2str(id));
+    lbldestcell = fullfile(valLblLoc, valLblTable{id+2, "name"});
+    lbldest = cell2mat(lbldestcell);
+    lblLoad = load(lbldest);
+    lblVol = lblLoad.cropLabel;
+    labels4d2file(lblVol, valLbl2, id);
+    
+end
+
+% store slice locations for training set in cell array
+numFiles = length(trainImset) - 2;
+TrImDir2d = {};
+TrlblDir2d = {};
+
+for id = 1:numFiles
+    idChar = num2str(id);
+    TrImDir2d{id} = [Tr2dImLoc '/' idChar];
+    TrlblDir2d{id} = [Tr2dlblLoc '/' idChar];
+end
+
+% store slice locations for validation set in cell array
+numFiles = length(valImset)-2;
+valImDir2d = {};
+vallblDir2d = {};
+
+for id = 1:numFiles
+    idChar = num2str(id);
+    valImDir2d{id} = [val2dImLoc '/' idChar];
+    vallblDir2d{id} = [val2dLblLoc '/' idChar];
+end
+
+%% store images in imagedastore and pixellabeldatastore
+procvolReader = @(x) matRead(x);
+
+% training datastores
+trimds = imageDatastore(TrImDir2d,'FileExtensions','.mat', 'ReadFcn',procvolReader);
+classnames = ["background" "tumour"];
+pixelLabelID = [0 1];
+trlblds = pixelLabelDatastore(TrlblDir2d, classnames, pixelLabelID, 'FileExtensions','.mat', 'ReadFcn',procvolReader);
+
+% validation datastores
+valimds = imageDatastore(valImDir2d, 'FileExtensions','.mat', 'ReadFcn', procvolReader);
+vallblds = pixelLabelDatastore(vallblDir2d, classnames, pixelLabelID,'FileExtensions','.mat', 'ReadFcn',procvolReader);
+
+% combined datastores
+trpximds = pixelLabelImageDatastore(trimds,trlblds);
+valpximds = pixelLabelImageDatastore(valimds,vallblds);
+
+%% load network
+%specify the n as the number of channels
+n = 4;
+% Create Layer Graph
+% Create the layer graph variable to contain the network layers.
+
+lgraph = layerGraph();
+% Add Layer Branches
+% Add the branches of the network to the layer graph. Each branch is a linear 
+% array of layers.
+
+tempLayers = [
+    imageInputLayer([128 128 n],"Name","input","Normalization","none")
+    convolution2dLayer([3 3],32,"Name","conv_Module1_Level1","Padding","same","WeightsInitializer","narrow-normal")
+    batchNormalizationLayer("Name","BN_Module1_Level1")
+    reluLayer("Name","relu_Module1_Level1")
+    convolution2dLayer([3 3],64,"Name","conv_Module1_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    reluLayer("Name","relu_Module1_Level2")];
+lgraph = addLayers(lgraph,tempLayers);
+
+tempLayers = [
+    maxPooling2dLayer([2 2],"Name","maxpool_Module1","Padding","same","Stride",[2 2])
+    convolution2dLayer([3 3],64,"Name","conv_Module2_Level1","Padding","same","WeightsInitializer","narrow-normal")
+    batchNormalizationLayer("Name","BN_Module2_Level1")
+    reluLayer("Name","relu_Module2_Level1")
+    convolution2dLayer([3 3],128,"Name","conv_Module2_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    reluLayer("Name","relu_Module2_Level2")];
+lgraph = addLayers(lgraph,tempLayers);
+
+tempLayers = [
+    maxPooling2dLayer([2 2],"Name","maxpool_Module2","Padding","same","Stride",[2 2])
+    convolution2dLayer([3 3],128,"Name","conv_Module3_Level1","Padding","same","WeightsInitializer","narrow-normal")
+    batchNormalizationLayer("Name","BN_Module3_Level1")
+    reluLayer("Name","relu_Module3_Level1")
+    convolution2dLayer([3 3],256,"Name","conv_Module3_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    reluLayer("Name","relu_Module3_Level2")];
+lgraph = addLayers(lgraph,tempLayers);
+
+tempLayers = [
+    maxPooling2dLayer([2 2],"Name","maxpool_Module3","Padding","same","Stride",[2 2])
+    convolution2dLayer([3 3],256,"Name","conv_Module4_Level1","Padding","same","WeightsInitializer","narrow-normal")
+    reluLayer("Name","relu_Module4_Level1")
+    convolution2dLayer([3 3],512,"Name","conv_Module4_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    reluLayer("Name","relu_Module4_Level2")
+    transposedConv2dLayer([2 2],512,"Name","transConv_Module4","Stride",[2 2])];
+lgraph = addLayers(lgraph,tempLayers);
+
+tempLayers = [
+    concatenationLayer(3,2,"Name","concat3")
+    convolution2dLayer([3 3],256,"Name","conv_Module5_Level1","Padding","same","WeightsInitializer","narrow-normal")
+    reluLayer("Name","relu_Module5_Level1")
+    convolution2dLayer([3 3],256,"Name","conv_Module5_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    reluLayer("Name","relu_Module5_Level2")
+    transposedConv2dLayer([2 2],256,"Name","transConv_Module5","Stride",[2 2])];
+lgraph = addLayers(lgraph,tempLayers);
+
+tempLayers = [
+    concatenationLayer(3,2,"Name","concat2")
+    convolution2dLayer([3 3],128,"Name","conv_Module6_Level1","Padding","same","WeightsInitializer","narrow-normal")
+    reluLayer("Name","relu_Module6_Level1")
+    convolution2dLayer([3 3],128,"Name","conv_Module6_Level2","Padding","same","WeightsInitializer","narrow-normal")
+    reluLayer("Name","relu_Module6_Level2")
+    transposedConv2dLayer([2 2],128,"Name","transConv_Module6","Stride",[2 2])];
+lgraph = addLayers(lgraph,tempLayers);
+
+tempLayers = [
+    concatenationLayer(3,2,"Name","concat1")
+    convolution2dLayer([3 3],64,"Name","conv_Module7_Level1","Padding","same")
+    reluLayer("Name","relu_Module7_Level1")
+    convolution2dLayer([3 3],64,"Name","conv_Module7_Level2","Padding","same")
+    reluLayer("Name","relu_Module7_Level2")
+    convolution2dLayer([1 1],2,"Name","ConvLast_Module7")
+    softmaxLayer("Name","softmax")
+    dicePixelClassificationLayer('Name', 'output')];
+lgraph = addLayers(lgraph,tempLayers);
+
+% clean up helper variable
+clear tempLayers;
+% Connect Layer Branches
+% Connect all the branches of the network to create the network graph.
+
+lgraph = connectLayers(lgraph,"relu_Module1_Level2","maxpool_Module1");
+lgraph = connectLayers(lgraph,"relu_Module1_Level2","concat1/in2");
+lgraph = connectLayers(lgraph,"relu_Module2_Level2","maxpool_Module2");
+lgraph = connectLayers(lgraph,"relu_Module2_Level2","concat2/in2");
+lgraph = connectLayers(lgraph,"relu_Module3_Level2","maxpool_Module3");
+lgraph = connectLayers(lgraph,"relu_Module3_Level2","concat3/in2");
+lgraph = connectLayers(lgraph,"transConv_Module4","concat3/in1");
+lgraph = connectLayers(lgraph,"transConv_Module5","concat2/in1");
+lgraph = connectLayers(lgraph,"transConv_Module6","concat1/in1");
+% Plot Layers
+
+%plot(lgraph);
+
+%% train the model on the training set for each fold in the k-fold
+% Need to Train the network using training and validation data
+
+options = trainingOptions('adam', ...
+    'MaxEpochs',50, ...
+    'InitialLearnRate',5e-4, ...
+    'LearnRateSchedule','piecewise', ...
+    'LearnRateDropPeriod',5, ...
+    'LearnRateDropFactor',0.95, ...
+    'ValidationData',trpximds, ...
+    'ValidationFrequency',400, ...
+    'Plots','training-progress', ...
+    'Verbose',false);
+
+doTraining = true;
+if doTraining 
+    modelDateTime = datestr(now,'dd-mmm-yyyy-HH-MM-SS');
+    [net,info] = trainNetwork(trpximds,lgraph,options);
+    save(['BraTStrained2DUNet-' modelDateTime '-Epoch-' num2str(options.MaxEpochs) '.mat'],'net');
+    infotable = struct2table(info);
+    writetable(infotable, ['BraTS2DUNetinfo-' modelDateTime '-Epoch-' num2str(options.MaxEpochs) '.txt']);
+end
+
+
