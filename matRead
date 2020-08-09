@@ -1,0 +1,7 @@
+function data = matRead(filename)
+
+inp = load(filename);
+f = fields(inp);
+volData = inp.(f{1});
+data = squeeze(volData);
+%data = im2uint8(squeezed);
